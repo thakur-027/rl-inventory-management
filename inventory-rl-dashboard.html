@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL Inventory Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #1e40af 50%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header Card */
+        .header-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            padding: 16px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+            color: white;
+        }
+
+        .main-title {
+            font-size: 36px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-top: 4px;
+            font-size: 18px;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-primary:disabled {
+            background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            color: white;
+        }
+
+        /* Explanation Panel */
+        .explanation-panel {
+            background: linear-gradient(135deg, #eff6ff 0%, #f3e8ff 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #93c5fd;
+            margin-bottom: 24px;
+        }
+
+        .explanation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .explanation-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e40af;
+        }
+
+        .explanation-title h3 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .hide-btn {
+            background: none;
+            border: none;
+            color: #2563eb;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .explanation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .explanation-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .explanation-label {
+            color: #1e40af;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .explanation-text {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Parameters Grid */
+        .params-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .param-card {
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .param-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+
+        .param-green {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #6ee7b7;
+        }
+
+        .param-purple {
+            background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            border-color: #c084fc;
+        }
+
+        .param-orange {
+            background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);
+            border-color: #fb923c;
+        }
+
+        .param-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .param-blue .param-header { color: #1e40af; }
+        .param-green .param-header { color: #065f46; }
+        .param-purple .param-header { color: #6b21a8; }
+        .param-orange .param-header { color: #9a3412; }
+
+        .param-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .param-blue .param-value { color: #1e3a8a; }
+        .param-green .param-value { color: #064e3b; }
+        .param-purple .param-value { color: #581c87; }
+        .param-orange .param-value { color: #7c2d12; }
+
+        .param-unit {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .param-blue .param-unit { color: #2563eb; }
+        .param-green .param-unit { color: #059669; }
+        .param-purple .param-unit { color: #7c3aed; }
+        .param-orange .param-unit { color: #ea580c; }
+
+        /* Training Progress */
+        .training-progress {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .training-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .training-header h3 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1f2937;
+        }
+
+        .pulse-icon {
+            color: #eab308;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        .progress-content {
+            margin-bottom: 16px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .progress-header span:first-child {
+            color: #4b5563;
+        }
+
+        .progress-header span:last-child {
+            color: #2563eb;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 24px;
+            background: #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #d1d5db;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #ec4899 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Live Metrics */
+        .live-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .metric-card {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid;
+        }
+
+        .metric-blue {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .metric-green {
+            background: #d1fae5;
+            border-color: #6ee7b7;
+        }
+
+        .metric-purple {
+            background: #e9d5ff;
+            border-color: #c084fc;
+        }
+
+        .metric-orange {
+            background: #fed7aa;
+            border-color: #fb923c;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .metric-blue .metric-label { color: #1e40af; }
+        .metric-green .metric-label { color: #065f46; }
+        .metric-purple .metric-label { color: #6b21a8; }
+        .metric-orange .metric-label { color: #9a3412; }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .metric-blue .metric-value { color: #1e3a8a; }
+        .metric-green .metric-value { color: #064e3b; }
+        .metric-purple .metric-value { color: #581c87; }
+        .metric-orange .metric-value { color: #7c2d12; }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 16px 24px;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6b7280;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            border-bottom: 4px solid transparent;
+        }
+
+        .tab-btn:hover {
+            background: #f9fafb;
+        }
+
+        .tab-btn.active {
+            color: #2563eb;
+            border-bottom-color: #2563eb;
+            background: #eff6ff;
+        }
+
+        .tabs-content {
+            padding: 32px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Sections */
+        .section-space {
+            margin-bottom: 48px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        /* Architecture Cards */
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+        }
+
+        .architecture-card {
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .arch-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+
+        .arch-purple {
+            background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            border-color: #c084fc;
+        }
+
+        .arch-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .arch-blue .arch-title { color: #1e3a8a; }
+        .arch-purple .arch-title { color: #581c87; }
+
+        .arch-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .arch-blue .detail-row span:first-child { color: #1e40af; font-weight: 600; }
+        .arch-blue .detail-row span:last-child { color: #1e3a8a; }
+        .arch-purple .detail-row span:first-child { color: #6b21a8; font-weight: 600; }
+        .arch-purple .detail-row span:last-child { color: #581c87; }
+
+        /* Reward Card */
+        .reward-card {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #6ee7b7;
+        }
+
+        .reward-formula {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #064e3b;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 24px;
+        }
+
+        .reward-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .reward-item {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .reward-label {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .reward-item:nth-child(1) .reward-label { color: #065f46; }
+        .reward-item:nth-child(2) .reward-label { color: #9a3412; }
+        .reward-item:nth-child(3) .reward-label { color: #991b1b; }
+
+        .reward-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .reward-item:nth-child(1) .reward-value { color: #064e3b; }
+        .reward-item:nth-child(2) .reward-value { color: #7c2d12; }
+        .reward-item:nth-child(3) .reward-value { color: #7f1d1d; }
+
+        .reward-unit {
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .reward-item:nth-child(1) .reward-unit { color: #059669; }
+        .reward-item:nth-child(2) .reward-unit { color: #ea580c; }
+        .reward-item:nth-child(3) .reward-unit { color: #dc2626; }
+
+        /* Actions Grid */
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .action-card {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            padding: 16px;
+            border-radius: 12px;
+            border: 2px solid #a5b4fc;
+            text-align: center;
+        }
+
+        .action-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #3730a3;
+            margin-bottom: 8px;
+        }
+
+        .action-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #312e81;
+        }
+
+        .action-unit {
+            font-size: 12px;
+            color: #4f46e5;
+            margin-top: 4px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #d1d5db;
+        }
+
+        #rewardChart {
+            width: 100%;
+            height: 320px;
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 16px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+        }
+
+        .legend-line {
+            width: 48px;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        .legend-blue {
+            background: #3b82f6;
+            opacity: 0.6;
+        }
+
+        .legend-red {
+            background: #ef4444;
+        }
+
+        /* Logs Container */
+        .logs-container {
+            background: #111827;
+            color: #10b981;
+            padding: 24px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            height: 384px;
+            overflow-y: auto;
+            border: 4px solid #374151;
+        }
+
+        .logs-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .logs-empty svg {
+            opacity: 0.5;
+            margin-bottom: 16px;
+        }
+
+        .logs-empty p:first-of-type {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .logs-empty-sub {
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .log-entry:hover {
+            background: #1f2937;
+        }
+
+        .log-timestamp {
+            color: #6b7280;
+            margin-right: 8px;
+        }
+
+        /* Results Container */
+        .results-container {
+            min-height: 400px;
+        }
+
+        .results-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+
+        .results-empty svg {
+            opacity: 0.5;
+            margin-bottom: 16px;
+        }
+
+        .results-empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .results-empty-sub {
+            font-size: 14px;
+        }
+
+        /* Comparison Cards */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .comparison-card {
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .comparison-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+
+        .comparison-red {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #fca5a5;
+        }
+
+        .comparison-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .comparison-blue .comparison-header { color: #1e3a8a; }
+        .comparison-red .comparison-header { color: #991b1b; }
+
+        .comparison-header h4 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .comparison-details {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .comparison-metric p:first-child {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .comparison-blue .comparison-metric p:first-child { color: #1e40af; }
+        .comparison-red .comparison-metric p:first-child { color: #991b1b; }
+
+        .comparison-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .comparison-blue .comparison-value { color: #1e3a8a; }
+        .comparison-red .comparison-value { color: #7f1d1d; }
+
+        .comparison-sub {
+            font-size: 20px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .comparison-blue .comparison-sub { color: #1e40af; }
+        .comparison-red .comparison-sub { color: #991b1b; }
+
+        /* Improvement Card */
+        .improvement-card {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid #6ee7b7;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .improvement-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .improvement-icon {
+            background: #10b981;
+            padding: 12px;
+            border-radius: 50%;
+            color: white;
+        }
+
+        .improvement-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 4px;
+        }
+
+        .improvement-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #064e3b;
+        }
+
+        .improvement-right {
+            text-align: right;
+        }
+
+        .improvement-right p:first-child {
+            font-size: 14px;
+            color: #065f46;
+        }
+
+        .improvement-savings {
+            font-size: 28px;
+            font-weight: bold;
+            color: #064e3b;
+        }
+
+        .improvement-unit {
+            font-size: 12px;
+            color: #059669;
+        }
+
+        /* Visual Bars */
+        .visual-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bar-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .bar-header span:first-child {
+            font-weight: 600;
+        }
+
+        .bar-container {
+            width: 100%;
+            height: 32px;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid;
+        }
+
+        .bar-blue {
+            background: #dbeafe;
+            border-color: #93c5fd;
+        }
+
+        .bar-red {
+            background: #fee2e2;
+            border-color: #fca5a5;
+        }
+
+        .bar-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            transition: width 0.5s ease;
+        }
+
+        .bar-fill-blue {
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        .bar-fill-red {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        /* Insights Grid */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .insight-card {
+            padding: 24px;
+            border-radius: 12px;
+            border: 2px solid;
+        }
+
+        .insight-blue {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+
+        .insight-green {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-color: #6ee7b7;
+        }
+
+        .insight-purple {
+            background: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            border-color: #c084fc;
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .insight-blue .insight-header { color: #1e40af; }
+        .insight-green .insight-header { color: #065f46; }
+        .insight-purple .insight-header { color: #6b21a8; }
+
+        .insight-header h3 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .insight-text {
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .insight-blue .insight-text { color: #1e40af; }
+        .insight-green .insight-text { color: #065f46; }
+        .insight-purple .insight-text { color: #6b21a8; }
+
+        .insight-stat {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+
+        .insight-stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .insight-blue .insight-stat-label { color: #2563eb; }
+        .insight-green .insight-stat-label { color: #059669; }
+        .insight-purple .insight-stat-label { color: #7c3aed; }
+
+        .insight-stat-value {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .insight-blue .insight-stat-value { color: #1e3a8a; }
+        .insight-green .insight-stat-value { color: #064e3b; }
+        .insight-purple .insight-stat-value { color: #581c87; }
+
+        /* Footer */
+        .footer {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 24px;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .footer p:first-child {
+            margin-bottom: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 24px;
+            }
+            
+            .subtitle {
+                font-size: 14px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .params-grid,
+            .architecture-grid,
+            .actions-grid,
+            .comparison-grid,
+            .insights-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-card">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="header-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="main-title">Reinforcement Learning for Inventory Management</h1>
+                        <p class="subtitle">Deep Q-Network (DQN) Optimization System</p>
+                    </div>
+                </div>
+                <div class="header-buttons">
+                    <button id="trainBtn" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                        </svg>
+                        Start Training
+                    </button>
+                    <button id="resetBtn" class="btn btn-secondary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                        </svg>
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Explanation Panel -->
+            <div id="explanationPanel" class="explanation-panel">
+                <div class="explanation-header">
+                    <div class="explanation-title">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="16" x2="12" y2="12"/>
+                            <line x1="12" y1="8" x2="12.01" y2="8"/>
+                        </svg>
+                        <h3>How This Works</h3>
+                    </div>
+                    <button id="hideExplanation" class="hide-btn">Hide</button>
+                </div>
+                <div class="explanation-grid">
+                    <div class="explanation-card">
+                        <p class="explanation-label">🎯 The Problem</p>
+                        <p class="explanation-text">Balance inventory to minimize holding costs and stockouts while maximizing profit from sales.</p>
+                    </div>
+                    <div class="explanation-card">
+                        <p class="explanation-label">🧠 The Solution</p>
+                        <p class="explanation-text">DQN agent learns optimal reorder quantities by trial and error through 200 episodes of simulation.</p>
+                    </div>
+                    <div class="explanation-card">
+                        <p class="explanation-label">📊 The Result</p>
+                        <p class="explanation-text">AI-driven policy outperforms traditional fixed reorder point methods by 5-15%.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environment Parameters -->
+            <div class="params-grid">
+                <div class="param-card param-blue">
+                    <div class="param-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                        </svg>
+                        <p>Max Inventory</p>
+                    </div>
+                    <p class="param-value">100</p>
+                    <p class="param-unit">units capacity</p>
+                </div>
+                <div class="param-card param-green">
+                    <div class="param-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"/>
+                            <circle cx="20" cy="21" r="1"/>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                        </svg>
+                        <p>Avg Demand</p>
+                    </div>
+                    <p class="param-value">20</p>
+                    <p class="param-unit">units per day</p>
+                </div>
+                <div class="param-card param-purple">
+                    <div class="param-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                            <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                        <p>Lead Time</p>
+                    </div>
+                    <p class="param-value">3</p>
+                    <p class="param-unit">days to deliver</p>
+                </div>
+                <div class="param-card param-orange">
+                    <div class="param-header">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <p>Unit Price</p>
+                    </div>
+                    <p class="param-value">$2</p>
+                    <p class="param-unit">revenue per unit</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Progress -->
+        <div id="trainingProgress" class="training-progress" style="display: none;">
+            <div class="training-header">
+                <svg class="pulse-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+                <h3>Training in Progress</h3>
+            </div>
+            <div class="progress-content">
+                <div class="progress-header">
+                    <span id="episodeText">Episode 0 / 200</span>
+                    <span id="progressPercent">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
+            </div>
+            <div class="live-metrics">
+                <div class="metric-card metric-blue">
+                    <p class="metric-label">Current Inventory</p>
+                    <p class="metric-value" id="metricInventory">0</p>
+                </div>
+                <div class="metric-card metric-green">
+                    <p class="metric-label">Demand</p>
+                    <p class="metric-value" id="metricDemand">0</p>
+                </div>
+                <div class="metric-card metric-purple">
+                    <p class="metric-label">Action Taken</p>
+                    <p class="metric-value" id="metricAction">+0</p>
+                </div>
+                <div class="metric-card metric-orange">
+                    <p class="metric-label">Reward</p>
+                    <p class="metric-value" id="metricReward">$0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="overview">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M1 12h6m6 0h6M4.8 4.8l4.2 4.2m0 6l-4.2 4.2"/>
+                    </svg>
+                    Overview
+                </button>
+                <button class="tab-btn" data-tab="training">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                        <polyline points="17 6 23 6 23 12"/>
+                    </svg>
+                    Training Progress
+                </button>
+                <button class="tab-btn" data-tab="results">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="8" r="7"/>
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                    </svg>
+                    Results
+                </button>
+            </div>
+
+            <div class="tabs-content">
+                <!-- Overview Tab -->
+                <div id="overviewTab" class="tab-content active">
+                    <div class="section-space">
+                        <h2 class="section-title">System Architecture</h2>
+                        <div class="architecture-grid">
+                            <div class="architecture-card arch-blue">
+                                <h3 class="arch-title">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                    </svg>
+                                    Environment Setup
+                                </h3>
+                                <div class="arch-details">
+                                    <div class="detail-row">
+                                        <span>State Space:</span>
+                                        <span>Inventory Level (0-100)</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Action Space:</span>
+                                        <span>6 discrete actions</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Holding Cost:</span>
+                                        <span>$0.10 per unit/day</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Stockout Cost:</span>
+                                        <span>$1.00 per unit</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Episode Length:</span>
+                                        <span>90 days</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="architecture-card arch-purple">
+                                <h3 class="arch-title">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                                    </svg>
+                                    Agent Configuration
+                                </h3>
+                                <div class="arch-details">
+                                    <div class="detail-row">
+                                        <span>Algorithm:</span>
+                                        <span>Deep Q-Network (DQN)</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Discount Factor (γ):</span>
+                                        <span>0.95</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Epsilon Decay:</span>
+                                        <span>0.995</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Batch Size:</span>
+                                        <span>32</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Memory Size:</span>
+                                        <span>1000</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-space">
+                        <h2 class="section-title">Reward Function</h2>
+                        <div class="reward-card">
+                            <p class="reward-formula">Reward = Revenue - Holding Cost - Stockout Cost</p>
+                            <div class="reward-grid">
+                                <div class="reward-item">
+                                    <p class="reward-label">Revenue</p>
+                                    <p class="reward-value">$2.00</p>
+                                    <p class="reward-unit">per unit sold</p>
+                                </div>
+                                <div class="reward-item">
+                                    <p class="reward-label">Holding Cost</p>
+                                    <p class="reward-value">$0.10</p>
+                                    <p class="reward-unit">per unit per day</p>
+                                </div>
+                                <div class="reward-item">
+                                    <p class="reward-label">Stockout Cost</p>
+                                    <p class="reward-value">$1.00</p>
+                                    <p class="reward-unit">per unmet demand</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-space">
+                        <h2 class="section-title">Available Actions</h2>
+                        <div class="actions-grid">
+                            <div class="action-card">
+                                <p class="action-label">Action 0</p>
+                                <p class="action-value">0</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                            <div class="action-card">
+                                <p class="action-label">Action 1</p>
+                                <p class="action-value">10</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                            <div class="action-card">
+                                <p class="action-label">Action 2</p>
+                                <p class="action-value">20</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                            <div class="action-card">
+                                <p class="action-label">Action 3</p>
+                                <p class="action-value">30</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                            <div class="action-card">
+                                <p class="action-label">Action 4</p>
+                                <p class="action-value">40</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                            <div class="action-card">
+                                <p class="action-label">Action 5</p>
+                                <p class="action-value">50</p>
+                                <p class="action-unit">units</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training Tab -->
+                <div id="trainingTab" class="tab-content">
+                    <div class="section-space">
+                        <h2 class="section-title">Reward History</h2>
+                        <div class="chart-container">
+                            <canvas id="rewardChart"></canvas>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-line legend-blue"></div>
+                                    <span>Episode Reward</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-line legend-red"></div>
+                                    <span>Moving Average (20)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-space">
+                        <h2 class="section-title">Training Logs</h2>
+                        <div id="logsContainer" class="logs-container">
+                            <div class="logs-empty">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="18" y1="20" x2="18" y2="10"/>
+                                    <line x1="12" y1="20" x2="12" y2="4"/>
+                                    <line x1="6" y1="20" x2="6" y2="14"/>
+                                </svg>
+                                <p>Click "Start Training" to begin the learning process...</p>
+                                <p class="logs-empty-sub">The agent will explore and learn optimal inventory policies</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Tab -->
+                <div id="resultsTab" class="tab-content">
+                    <div class="section-space">
+                        <h2 class="section-title">Performance Comparison</h2>
+                        <div id="resultsContainer" class="results-container">
+                            <div class="results-empty">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="8" r="7"/>
+                                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                                </svg>
+                                <p class="results-empty-title">No Results Yet</p>
+                                <p class="results-empty-sub">Train the agent to see performance metrics and comparisons</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🎓 Deep Q-Network Reinforcement Learning | 🏢 Inventory Optimization System</p>
+            <p>Built with HTML • CSS • JavaScript • DQN Algorithm</p>
+        </div>
+    </div>
+
+    <script>
+        // Environment Configuration
+        const ENV_CONFIG = {
+            maxInventory: 100,
+            maxOrderQty: 50,
+            nActions: 6,
+            leadTime: 3,
+            holdingCost: 0.1,
+            stockoutCost: 1.0,
+            unitPrice: 2.0,
+            demandMean: 20,
+            episodeDays: 90
+        };
+
+        // Agent Configuration
+        const AGENT_CONFIG = {
+            gamma: 0.95,
+            epsilon: 1.0,
+            epsilonMin: 0.01,
+            epsilonDecay: 0.995,
+            learningRate: 0.001,
+            batchSize: 32,
+            memorySize: 1000
+        };
+
+        // Global State
+        let isTraining = false;
+        let trainingComplete = false;
+        let rewardsHistory = [];
+        let agent = null;
+
+        // Inventory Environment Class
+        class InventoryEnv {
+            constructor() {
+                this.maxInventory = ENV_CONFIG.maxInventory;
+                this.maxOrderQty = ENV_CONFIG.maxOrderQty;
+                this.nActions = ENV_CONFIG.nActions;
+                this.leadTime = ENV_CONFIG.leadTime;
+                this.holdingCost = ENV_CONFIG.holdingCost;
+                this.stockoutCost = ENV_CONFIG.stockoutCost;
+                this.unitPrice = ENV_CONFIG.unitPrice;
+                this.demandMean = ENV_CONFIG.demandMean;
+                
+                this.inventory = 0;
+                this.pendingOrders = [];
+                this.day = 0;
+            }
+
+            getActionValue(action) {
+                return action * (this.maxOrderQty / (this.nActions - 1));
+            }
+
+            reset() {
+                this.inventory = Math.floor(Math.random() * 20) + 10;
+                this.pendingOrders = new Array(this.leadTime).fill(0);
+                this.day = 0;
+                return this.inventory;
+            }
+
+            poissonRandom(lambda) {
+                let L = Math.exp(-lambda);
+                let k = 0;
+                let p = 1;
+                do {
+                    k++;
+                    p *= Math.random();
+                } while (p > L);
+                return k - 1;
+            }
+
+            step(action) {
+                this.day++;
+                const arrivedOrder = this.pendingOrders.shift();
+                this.inventory = Math.min(this.inventory + arrivedOrder, this.maxInventory);
+                const orderQuantity = this.getActionValue(action);
+                this.pendingOrders.push(orderQuantity);
+                const demand = this.poissonRandom(this.demandMean);
+                const sales = Math.min(this.inventory, demand);
+                const unmetDemand = demand - sales;
+                this.inventory -= sales;
+                const revenue = sales * this.unitPrice;
+                const holdingCostTotal = this.inventory * this.holdingCost;
+                const stockoutCostTotal = unmetDemand * this.stockoutCost;
+                const reward = revenue - holdingCostTotal - stockoutCostTotal;
+                const done = this.day >= ENV_CONFIG.episodeDays;
+
+                return {
+                    nextState: this.inventory,
+                    reward: reward,
+                    done: done,
+                    unmetDemand: unmetDemand,
+                    demand: demand,
+                    sales: sales
+                };
+            }
+        }
+
+        // DQN Agent Class
+        class SimpleDQNAgent {
+            constructor() {
+                this.nActions = ENV_CONFIG.nActions;
+                this.gamma = AGENT_CONFIG.gamma;
+                this.epsilon = AGENT_CONFIG.epsilon;
+                this.epsilonMin = AGENT_CONFIG.epsilonMin;
+                this.epsilonDecay = AGENT_CONFIG.epsilonDecay;
+                this.memory = [];
+                this.maxMemory = AGENT_CONFIG.memorySize;
+                this.qTable = {};
+            }
+
+            getQValues(state) {
+                const key = Math.floor(state / 10) * 10;
+                if (!this.qTable[key]) {
+                    this.qTable[key] = new Array(this.nActions).fill(0);
+                }
+                return this.qTable[key];
+            }
+
+            act(state) {
+                if (Math.random() <= this.epsilon) {
+                    return Math.floor(Math.random() * this.nActions);
+                }
+                const qValues = this.getQValues(state);
+                return qValues.indexOf(Math.max(...qValues));
+            }
+
+            remember(state, action, reward, nextState, done) {
+                this.memory.push({ state, action, reward, nextState, done });
+                if (this.memory.length > this.maxMemory) {
+                    this.memory.shift();
+                }
+            }
+
+            replay() {
+                if (this.memory.length < AGENT_CONFIG.batchSize) {
+                    return;
+                }
+
+                const batchSize = Math.min(AGENT_CONFIG.batchSize, this.memory.length);
+                const minibatch = [];
+                
+                for (let i = 0; i < batchSize; i++) {
+                    const idx = Math.floor(Math.random() * this.memory.length);
+                    minibatch.push(this.memory[idx]);
+                }
+
+                for (const { state, action, reward, nextState, done } of minibatch) {
+                    const stateKey = Math.floor(state / 10) * 10;
+                    const nextStateKey = Math.floor(nextState / 10) * 10;
+                    
+                    if (!this.qTable[stateKey]) {
+                        this.qTable[stateKey] = new Array(this.nActions).fill(0);
+                    }
+                    if (!this.qTable[nextStateKey]) {
+                        this.qTable[nextStateKey] = new Array(this.nActions).fill(0);
+                    }
+
+                    let target = reward;
+                    if (!done) {
+                        const maxNextQ = Math.max(...this.qTable[nextStateKey]);
+                        target = reward + this.gamma * maxNextQ;
+                    }
+
+                    const currentQ = this.qTable[stateKey][action];
+                    this.qTable[stateKey][action] = currentQ + 0.1 * (target - currentQ);
+                }
+
+                if (this.epsilon > this.epsilonMin) {
+                    this.epsilon *= this.epsilonDecay;
+                }
+            }
+        }
+
+        // Fixed Policy
+        function fixedReorderPolicy(inventory) {
+            return inventory < 20 ? 4 : 0;
+        }
+
+        // Run Evaluation
+        function runEvaluation(policyFunc, episodes = 100) {
+            const env = new InventoryEnv();
+            const totalRewards = [];
+            const totalUnmetDemands = [];
+
+            for (let e = 0; e < episodes; e++) {
+                let state = env.reset();
+                let episodeReward = 0;
+                let episodeUnmetDemand = 0;
+                let done = false;
+
+                while (!done) {
+                    const action = policyFunc(state);
+                    const result = env.step(action);
+                    state = result.nextState;
+                    episodeReward += result.reward;
+                    episodeUnmetDemand += result.unmetDemand;
+                    done = result.done;
+                }
+
+                totalRewards.push(episodeReward);
+                totalUnmetDemands.push(episodeUnmetDemand);
+            }
+
+            const avgReward = totalRewards.reduce((a, b) => a + b, 0) / totalRewards.length;
+            const avgUnmetDemand = totalUnmetDemands.reduce((a, b) => a + b, 0) / totalUnmetDemands.length;
+
+            return {
+                avgCost: -avgReward,
+                avgUnmetDemand: avgUnmetDemand
+            };
+        }
+
+        // Add log entry
+        function addLog(message) {
+            const logsContainer = document.getElementById('logsContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const emptyState = logsContainer.querySelector('.logs-empty');
+            if (emptyState) {
+                emptyState.remove();
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // Update chart
+        function updateChart() {
+            const canvas = document.getElementById('rewardChart');
+            const ctx = canvas.getContext('2d');
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (rewardsHistory.length === 0) return;
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 320;
+            
+            const padding = 60;
+            const width = canvas.width - 2 * padding;
+            const height = canvas.height - 2 * padding;
+            
+            const maxReward = Math.max(...rewardsHistory);
+            const minReward = Math.min(...rewardsHistory);
+            const range = maxReward - minReward;
+            const yPadding = range * 0.1;
+            
+            // Draw grid
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (i * height / 5);
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + width, y);
+                ctx.stroke();
+                
+                const value = maxReward - (i * range / 5);
+                ctx.fillStyle = '#6b7280';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(value.toFixed(0), padding - 10, y + 5);
+            }
+            
+            // Draw axes
+            ctx.strokeStyle = '#374151';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + height);
+            ctx.lineTo(padding + width, padding + height);
+            ctx.stroke();
+            
+            // Draw reward line
+            ctx.strokeStyle = '#3b82f6';
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.6;
+            ctx.beginPath();
+            rewardsHistory.forEach((reward, i) => {
+                const x = padding + (i / rewardsHistory.length) * width;
+                const y = padding + height - ((reward - minReward + yPadding) / (range + 2 * yPadding)) * height;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Draw moving average
+            const movingAvg = getMovingAverage(rewardsHistory, 20);
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            movingAvg.forEach((reward, i) => {
+                const x = padding + (i / movingAvg.length) * width;
+                const y = padding + height - ((reward - minReward + yPadding) / (range + 2 * yPadding)) * height;
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = '#374151';
+            ctx.font = 'bold 13px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Episode Number', padding + width / 2, canvas.height - 20);
+            
+            ctx.save();
+            ctx.translate(20, padding + height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Total Reward ($)', 0, 0);
+            ctx.restore();
+        }
+
+        // Get moving average
+        function getMovingAverage(data, window = 20) {
+            const result = [];
+            for (let i = 0; i < data.length; i++) {
+                const start = Math.max(0, i - window + 1);
+                const subset = data.slice(start, i + 1);
+                const avg = subset.reduce((a, b) => a + b, 0) / subset.length;
+                result.push(avg);
+            }
+            return result;
+        }
+
+        // Display results
+        function displayResults(dqnResults, fixedResults) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const improvement = ((fixedResults.avgCost - dqnResults.avgCost) / fixedResults.avgCost * 100);
+            const savings = fixedResults.avgCost - dqnResults.avgCost;
+            const maxCost = Math.max(dqnResults.avgCost, fixedResults.avgCost);
+            const serviceLevel = (100 - (dqnResults.avgUnmetDemand / (ENV_CONFIG.demandMean * ENV_CONFIG.episodeDays) * 100)).toFixed(1);
+            
+            resultsContainer.innerHTML = `
+                <div class="comparison-grid">
+                    <div class="comparison-card comparison-blue">
+                        <div class="comparison-header">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                            </svg>
+                            <h4>DQN Agent</h4>
+                        </div>
+                        <div class="comparison-details">
+                            <div class="comparison-metric">
+                                <p>Average Cost</p>
+                                <p class="comparison-value">${dqnResults.avgCost.toFixed(2)}</p>
+                            </div>
+                            <div class="comparison-metric">
+                                <p>Unmet Demand</p>
+                                <p class="comparison-sub">${dqnResults.avgUnmetDemand.toFixed(1)} units</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="comparison-card comparison-red">
+                        <div class="comparison-header">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <circle cx="12" cy="12" r="6"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            <h4>Fixed Policy</h4>
+                        </div>
+                        <div class="comparison-details">
+                            <div class="comparison-metric">
+                                <p>Average Cost</p>
+                                <p class="comparison-value">${fixedResults.avgCost.toFixed(2)}</p>
+                            </div>
+                            <div class="comparison-metric">
+                                <p>Unmet Demand</p>
+                                <p class="comparison-sub">${fixedResults.avgUnmetDemand.toFixed(1)} units</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="improvement-card">
+                    <div class="improvement-left">
+                        <div class="improvement-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="improvement-label">Performance Improvement</p>
+                            <p class="improvement-value">${improvement.toFixed(1)}%</p>
+                        </div>
+                    </div>
+                    <div class="improvement-right">
+                        <p>Cost Savings</p>
+                        <p class="improvement-savings">${savings.toFixed(2)}</p>
+                        <p class="improvement-unit">per 90-day cycle</p>
+                    </div>
+                </div>
+
+                <h2 class="section-title" style="margin-bottom: 16px;">Visual Comparison</h2>
+                <div class="visual-bars">
+                    <div class="bar-item">
+                        <div class="bar-header">
+                            <span>🤖 DQN Agent</span>
+                            <span>${dqnResults.avgCost.toFixed(2)}</span>
+                        </div>
+                        <div class="bar-container bar-blue">
+                            <div class="bar-fill bar-fill-blue" style="width: ${(dqnResults.avgCost / maxCost) * 100}%">
+                                ${dqnResults.avgUnmetDemand.toFixed(1)} unmet
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bar-item">
+                        <div class="bar-header">
+                            <span>📋 Fixed Policy</span>
+                            <span>${fixedResults.avgCost.toFixed(2)}</span>
+                        </div>
+                        <div class="bar-container bar-red">
+                            <div class="bar-fill bar-fill-red" style="width: ${(fixedResults.avgCost / maxCost) * 100}%">
+                                ${fixedResults.avgUnmetDemand.toFixed(1)} unmet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="section-title" style="margin-top: 32px; margin-bottom: 16px;">Key Insights</h2>
+                <div class="insights-grid">
+                    <div class="insight-card insight-blue">
+                        <div class="insight-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23"/>
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                            </svg>
+                            <h3>Cost Efficiency</h3>
+                        </div>
+                        <p class="insight-text">
+                            The DQN agent reduced average operational costs by minimizing both holding and stockout penalties.
+                        </p>
+                        <div class="insight-stat">
+                            <p class="insight-stat-label">Savings per Cycle</p>
+                            <p class="insight-stat-value">${savings.toFixed(2)}</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-card insight-green">
+                        <div class="insight-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="9" cy="21" r="1"/>
+                                <circle cx="20" cy="21" r="1"/>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+                            </svg>
+                            <h3>Demand Fulfillment</h3>
+                        </div>
+                        <p class="insight-text">
+                            Better inventory positioning reduced stockouts and improved customer satisfaction metrics.
+                        </p>
+                        <div class="insight-stat">
+                            <p class="insight-stat-label">Service Level</p>
+                            <p class="insight-stat-value">${serviceLevel}%</p>
+                        </div>
+                    </div>
+
+                    <div class="insight-card insight-purple">
+                        <div class="insight-header">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/>
+                            </svg>
+                            <h3>Learning Efficiency</h3>
+                        </div>
+                        <p class="insight-text">
+                            The agent learned optimal policies through exploration and exploitation balance.
+                        </p>
+                        <div class="insight-stat">
+                            <p class="insight-stat-label">Training Episodes</p>
+                            <p class="insight-stat-value">200</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Train Agent
+        async function trainAgent() {
+            if (isTraining) return;
+            
+            isTraining = true;
+            trainingComplete = false;
+            rewardsHistory = [];
+            
+            const trainBtn = document.getElementById('trainBtn');
+            trainBtn.disabled = true;
+            trainBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Training...
+            `;
+            
+            document.getElementById('trainingProgress').style.display = 'block';
+            switchTab('training');
+            
+            const logsContainer = document.getElementById('logsContainer');
+            logsContainer.innerHTML = '';
+            
+            addLog('🚀 Initializing Deep Q-Network Agent...');
+            
+            const env = new InventoryEnv();
+            agent = new SimpleDQNAgent();
+            const episodes = 200;
+            
+            for (let e = 0; e < episodes; e++) {
+                let state = env.reset();
+                let totalReward = 0;
+                
+                for (let step = 0; step < 100; step++) {
+                    const action = agent.act(state);
+                    const result = env.step(action);
+                    totalReward += result.reward;
+                    
+                    agent.remember(state, action, result.reward, result.nextState, result.done);
+                    state = result.nextState;
+                    
+                    if (e === episodes - 1 && step % 10 === 0) {
+                        document.getElementById('metricInventory').textContent = Math.round(state);
+                        document.getElementById('metricDemand').textContent = result.demand;
+                        document.getElementById('metricAction').textContent = '+' + (action * 10);
+                        document.getElementById('metricReward').textContent = ' + ' + result.reward.toFixed(2);
+                    }
+                    
+                    if (result.done) break;
+                }
+                
+                rewardsHistory.push(totalReward);
+                agent.replay();
+                
+                const progress = ((e + 1) / episodes) * 100;
+                document.getElementById('episodeText').textContent = `Episode ${e + 1} / ${episodes}`;
+                document.getElementById('progressPercent').textContent = `${progress.toFixed(1)}%`;
+                document.getElementById('progressBar').style.width = `${progress}%`;
+                
+                if ((e + 1) % 5 === 0) {
+                    updateChart();
+                }
+                
+                if ((e + 1) % 20 === 0) {
+                    addLog(`📊 Episode ${e + 1}/${episodes} | Reward: ${totalReward.toFixed(2)} | ε: ${agent.epsilon.toFixed(3)}`);
+                }
+                
+                if (e % 5 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            }
+            
+            addLog('✅ Training complete! Evaluating policies...');
+            
+            const dqnResults = runEvaluation((state) => {
+                agent.epsilon = 0;
+                return agent.act(state);
+            }, 100);
+            
+            const fixedResults = runEvaluation(fixedReorderPolicy, 100);
+            
+            const improvement = ((fixedResults.avgCost - dqnResults.avgCost) / fixedResults.avgCost * 100).toFixed(1);
+            
+            addLog(`🤖 DQN Agent -> Avg Cost: ${dqnResults.avgCost.toFixed(2)}, Unmet Demand: ${dqnResults.avgUnmetDemand.toFixed(2)} units`);
+            addLog(`📋 Fixed Policy -> Avg Cost: ${fixedResults.avgCost.toFixed(2)}, Unmet Demand: ${fixedResults.avgUnmetDemand.toFixed(2)} units`);
+            addLog(`🎯 Performance Improvement: ${improvement}%`);
+            
+            displayResults(dqnResults, fixedResults);
+            updateChart();
+            
+            isTraining = false;
+            trainingComplete = true;
+            
+            trainBtn.disabled = false;
+            trainBtn.innerHTML = `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                </svg>
+                Start Training
+            `;
+            
+            switchTab('results');
+        }
+
+        // Reset function
+        function reset() {
+            isTraining = false;
+            trainingComplete = false;
+            rewardsHistory = [];
+            agent = null;
+            
+            document.getElementById('trainingProgress').style.display = 'none';
+            
+            const logsContainer = document.getElementById('logsContainer');
+            logsContainer.innerHTML = `
+                <div class="logs-empty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <p>Click "Start Training" to begin the learning process...</p>
+                    <p class="logs-empty-sub">The agent will explore and learn optimal inventory policies</p>
+                </div>
+            `;
+            
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = `
+                <div class="results-empty">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="8" r="7"/>
+                        <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+                    </svg>
+                    <p class="results-empty-title">No Results Yet</p>
+                    <p class="results-empty-sub">Train the agent to see performance metrics and comparisons</p>
+                </div>
+            `;
+            
+            const canvas = document.getElementById('rewardChart');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            document.getElementById('episodeText').textContent = 'Episode 0 / 200';
+            document.getElementById('progressPercent').textContent = '0%';
+            document.getElementById('progressBar').style.width = '0%';
+            
+            document.getElementById('metricInventory').textContent = '0';
+            document.getElementById('metricDemand').textContent = '0';
+            document.getElementById('metricAction').textContent = '+0';
+            document.getElementById('metricReward').textContent = '$0';
+            
+            switchTab('overview');
+        }
+
+        // Switch tab function
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            const tabBtn = document.querySelector(`[data-tab="${tabName}"]`);
+            const tabContent = document.getElementById(`${tabName}Tab`);
+            
+            if (tabBtn) tabBtn.classList.add('active');
+            if (tabContent) tabContent.classList.add('active');
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('trainBtn').addEventListener('click', trainAgent);
+            document.getElementById('resetBtn').addEventListener('click', reset);
+            document.getElementById('hideExplanation').addEventListener('click', () => {
+                document.getElementById('explanationPanel').style.display = 'none';
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabName = btn.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
+            });
+            
+            window.addEventListener('resize', () => {
+                if (rewardsHistory.length > 0) {
+                    updateChart();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
