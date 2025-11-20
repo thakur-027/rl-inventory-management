@@ -1120,7 +1120,7 @@
                         </svg>
                         <p>Unit Price</p>
                     </div>
-                    <p class="param-value">$2</p>
+                    <p class="param-value">₹166</p>
                     <p class="param-unit">revenue per unit</p>
                 </div>
             </div>
@@ -1157,8 +1157,8 @@
                     <p class="metric-value" id="metricAction">+0</p>
                 </div>
                 <div class="metric-card metric-orange">
-                    <p class="metric-label">Reward</p>
-                    <p class="metric-value" id="metricReward">$0</p>
+                    <p class="metric-label">Profit</p>
+                    <p class="metric-value" id="metricReward">₹0</p>
                 </div>
             </div>
         </div>
@@ -1213,11 +1213,11 @@
                                     </div>
                                     <div class="detail-row">
                                         <span>Holding Cost:</span>
-                                        <span>$0.10 per unit/day</span>
+                                        <span>₹8.30 per unit/day</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Stockout Cost:</span>
-                                        <span>$1.00 per unit</span>
+                                        <span>₹83 per unit</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Episode Length:</span>
@@ -1260,23 +1260,23 @@
                     </div>
 
                     <div class="section-space">
-                        <h2 class="section-title">Reward Function</h2>
+                        <h2 class="section-title">Profit Function</h2>
                         <div class="reward-card">
-                            <p class="reward-formula">Reward = Revenue - Holding Cost - Stockout Cost</p>
+                            <p class="reward-formula">Profit = Revenue - Holding Cost - Stockout Cost</p>
                             <div class="reward-grid">
                                 <div class="reward-item">
                                     <p class="reward-label">Revenue</p>
-                                    <p class="reward-value">$2.00</p>
+                                    <p class="reward-value">₹166</p>
                                     <p class="reward-unit">per unit sold</p>
                                 </div>
                                 <div class="reward-item">
                                     <p class="reward-label">Holding Cost</p>
-                                    <p class="reward-value">$0.10</p>
+                                    <p class="reward-value">₹8.30</p>
                                     <p class="reward-unit">per unit per day</p>
                                 </div>
                                 <div class="reward-item">
                                     <p class="reward-label">Stockout Cost</p>
-                                    <p class="reward-value">$1.00</p>
+                                    <p class="reward-value">₹83</p>
                                     <p class="reward-unit">per unmet demand</p>
                                 </div>
                             </div>
@@ -1323,13 +1323,13 @@
                 <!-- Training Tab -->
                 <div id="trainingTab" class="tab-content">
                     <div class="section-space">
-                        <h2 class="section-title">Reward History</h2>
+                        <h2 class="section-title">Profit History</h2>
                         <div class="chart-container">
                             <canvas id="rewardChart"></canvas>
                             <div class="chart-legend">
                                 <div class="legend-item">
                                     <div class="legend-line legend-blue"></div>
-                                    <span>Episode Reward</span>
+                                    <span>Episode Profit</span>
                                 </div>
                                 <div class="legend-item">
                                     <div class="legend-line legend-red"></div>
@@ -1382,15 +1382,18 @@
     </div>
 
     <script>
+        // USD to INR conversion rate
+        const USD_TO_INR = 83;
+
         // Environment Configuration
         const ENV_CONFIG = {
             maxInventory: 100,
             maxOrderQty: 50,
             nActions: 6,
             leadTime: 3,
-            holdingCost: 0.1,
-            stockoutCost: 1.0,
-            unitPrice: 2.0,
+            holdingCost: 0.1 * USD_TO_INR,      // ₹8.30
+            stockoutCost: 1.0 * USD_TO_INR,      // ₹83
+            unitPrice: 2.0 * USD_TO_INR,         // ₹166
             demandMean: 20,
             episodeDays: 90
         };
@@ -1562,12 +1565,12 @@
         // Run Evaluation
         function runEvaluation(policyFunc, episodes = 100) {
             const env = new InventoryEnv();
-            const totalRewards = [];
+            const totalProfits = [];
             const totalUnmetDemands = [];
 
             for (let e = 0; e < episodes; e++) {
                 let state = env.reset();
-                let episodeReward = 0;
+                let episodeProfit = 0;
                 let episodeUnmetDemand = 0;
                 let done = false;
 
@@ -1575,20 +1578,20 @@
                     const action = policyFunc(state);
                     const result = env.step(action);
                     state = result.nextState;
-                    episodeReward += result.reward;
+                    episodeProfit += result.reward;
                     episodeUnmetDemand += result.unmetDemand;
                     done = result.done;
                 }
 
-                totalRewards.push(episodeReward);
+                totalProfits.push(episodeProfit);
                 totalUnmetDemands.push(episodeUnmetDemand);
             }
 
-            const avgReward = totalRewards.reduce((a, b) => a + b, 0) / totalRewards.length;
+            const avgProfit = totalProfits.reduce((a, b) => a + b, 0) / totalProfits.length;
             const avgUnmetDemand = totalUnmetDemands.reduce((a, b) => a + b, 0) / totalUnmetDemands.length;
 
             return {
-                avgCost: -avgReward,
+                avgProfit: avgProfit,
                 avgUnmetDemand: avgUnmetDemand
             };
         }
@@ -1645,7 +1648,7 @@
                 ctx.fillStyle = '#6b7280';
                 ctx.font = '12px sans-serif';
                 ctx.textAlign = 'right';
-                ctx.fillText(value.toFixed(0), padding - 10, y + 5);
+                ctx.fillText('₹' + value.toFixed(0), padding - 10, y + 5);
             }
             
             // Draw axes
@@ -1699,7 +1702,7 @@
             ctx.save();
             ctx.translate(20, padding + height / 2);
             ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Total Reward ($)', 0, 0);
+            ctx.fillText('Total Profit (₹)', 0, 0);
             ctx.restore();
         }
 
@@ -1718,9 +1721,9 @@
         // Display results
         function displayResults(dqnResults, fixedResults) {
             const resultsContainer = document.getElementById('resultsContainer');
-            const improvement = ((fixedResults.avgCost - dqnResults.avgCost) / fixedResults.avgCost * 100);
-            const savings = fixedResults.avgCost - dqnResults.avgCost;
-            const maxCost = Math.max(dqnResults.avgCost, fixedResults.avgCost);
+            const improvement = ((dqnResults.avgProfit - fixedResults.avgProfit) / fixedResults.avgProfit * 100);
+            const additionalProfit = dqnResults.avgProfit - fixedResults.avgProfit;
+            const maxProfit = Math.max(dqnResults.avgProfit, fixedResults.avgProfit);
             const serviceLevel = (100 - (dqnResults.avgUnmetDemand / (ENV_CONFIG.demandMean * ENV_CONFIG.episodeDays) * 100)).toFixed(1);
             
             resultsContainer.innerHTML = `
@@ -1734,8 +1737,8 @@
                         </div>
                         <div class="comparison-details">
                             <div class="comparison-metric">
-                                <p>Average Cost</p>
-                                <p class="comparison-value">${dqnResults.avgCost.toFixed(2)}</p>
+                                <p>Average Profit</p>
+                                <p class="comparison-value">₹${dqnResults.avgProfit.toFixed(2)}</p>
                             </div>
                             <div class="comparison-metric">
                                 <p>Unmet Demand</p>
@@ -1755,8 +1758,8 @@
                         </div>
                         <div class="comparison-details">
                             <div class="comparison-metric">
-                                <p>Average Cost</p>
-                                <p class="comparison-value">${fixedResults.avgCost.toFixed(2)}</p>
+                                <p>Average Profit</p>
+                                <p class="comparison-value">₹${fixedResults.avgProfit.toFixed(2)}</p>
                             </div>
                             <div class="comparison-metric">
                                 <p>Unmet Demand</p>
@@ -1779,8 +1782,8 @@
                         </div>
                     </div>
                     <div class="improvement-right">
-                        <p>Cost Savings</p>
-                        <p class="improvement-savings">${savings.toFixed(2)}</p>
+                        <p>Additional Profit</p>
+                        <p class="improvement-savings">₹${additionalProfit.toFixed(2)}</p>
                         <p class="improvement-unit">per 90-day cycle</p>
                     </div>
                 </div>
@@ -1790,10 +1793,10 @@
                     <div class="bar-item">
                         <div class="bar-header">
                             <span>🤖 DQN Agent</span>
-                            <span>${dqnResults.avgCost.toFixed(2)}</span>
+                            <span>₹${dqnResults.avgProfit.toFixed(2)}</span>
                         </div>
                         <div class="bar-container bar-blue">
-                            <div class="bar-fill bar-fill-blue" style="width: ${(dqnResults.avgCost / maxCost) * 100}%">
+                            <div class="bar-fill bar-fill-blue" style="width: ${(dqnResults.avgProfit / maxProfit) * 100}%">
                                 ${dqnResults.avgUnmetDemand.toFixed(1)} unmet
                             </div>
                         </div>
@@ -1801,10 +1804,10 @@
                     <div class="bar-item">
                         <div class="bar-header">
                             <span>📋 Fixed Policy</span>
-                            <span>${fixedResults.avgCost.toFixed(2)}</span>
+                            <span>₹${fixedResults.avgProfit.toFixed(2)}</span>
                         </div>
                         <div class="bar-container bar-red">
-                            <div class="bar-fill bar-fill-red" style="width: ${(fixedResults.avgCost / maxCost) * 100}%">
+                            <div class="bar-fill bar-fill-red" style="width: ${(fixedResults.avgProfit / maxProfit) * 100}%">
                                 ${fixedResults.avgUnmetDemand.toFixed(1)} unmet
                             </div>
                         </div>
@@ -1819,14 +1822,14 @@
                                 <line x1="12" y1="1" x2="12" y2="23"/>
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                             </svg>
-                            <h3>Cost Efficiency</h3>
+                            <h3>Profit Maximization</h3>
                         </div>
                         <p class="insight-text">
-                            The DQN agent reduced average operational costs by minimizing both holding and stockout penalties.
+                            The DQN agent increased average operational profit by optimizing both inventory levels and reducing stockout penalties.
                         </p>
                         <div class="insight-stat">
-                            <p class="insight-stat-label">Savings per Cycle</p>
-                            <p class="insight-stat-value">${savings.toFixed(2)}</p>
+                            <p class="insight-stat-label">Additional Profit per Cycle</p>
+                            <p class="insight-stat-value">₹${additionalProfit.toFixed(2)}</p>
                         </div>
                     </div>
 
@@ -1912,7 +1915,7 @@
                         document.getElementById('metricInventory').textContent = Math.round(state);
                         document.getElementById('metricDemand').textContent = result.demand;
                         document.getElementById('metricAction').textContent = '+' + (action * 10);
-                        document.getElementById('metricReward').textContent = ' + ' + result.reward.toFixed(2);
+                        document.getElementById('metricReward').textContent = '₹' + result.reward.toFixed(2);
                     }
                     
                     if (result.done) break;
@@ -1931,7 +1934,7 @@
                 }
                 
                 if ((e + 1) % 20 === 0) {
-                    addLog(`📊 Episode ${e + 1}/${episodes} | Reward: ${totalReward.toFixed(2)} | ε: ${agent.epsilon.toFixed(3)}`);
+                    addLog(`📊 Episode ${e + 1}/${episodes} | Profit: ₹${totalReward.toFixed(2)} | ε: ${agent.epsilon.toFixed(3)}`);
                 }
                 
                 if (e % 5 === 0) {
@@ -1948,10 +1951,10 @@
             
             const fixedResults = runEvaluation(fixedReorderPolicy, 100);
             
-            const improvement = ((fixedResults.avgCost - dqnResults.avgCost) / fixedResults.avgCost * 100).toFixed(1);
+            const improvement = ((dqnResults.avgProfit - fixedResults.avgProfit) / fixedResults.avgProfit * 100).toFixed(1);
             
-            addLog(`🤖 DQN Agent -> Avg Cost: ${dqnResults.avgCost.toFixed(2)}, Unmet Demand: ${dqnResults.avgUnmetDemand.toFixed(2)} units`);
-            addLog(`📋 Fixed Policy -> Avg Cost: ${fixedResults.avgCost.toFixed(2)}, Unmet Demand: ${fixedResults.avgUnmetDemand.toFixed(2)} units`);
+            addLog(`🤖 DQN Agent -> Avg Profit: ₹${dqnResults.avgProfit.toFixed(2)}, Unmet Demand: ${dqnResults.avgUnmetDemand.toFixed(2)} units`);
+            addLog(`📋 Fixed Policy -> Avg Profit: ₹${fixedResults.avgProfit.toFixed(2)}, Unmet Demand: ${fixedResults.avgUnmetDemand.toFixed(2)} units`);
             addLog(`🎯 Performance Improvement: ${improvement}%`);
             
             displayResults(dqnResults, fixedResults);
@@ -2016,7 +2019,7 @@
             document.getElementById('metricInventory').textContent = '0';
             document.getElementById('metricDemand').textContent = '0';
             document.getElementById('metricAction').textContent = '+0';
-            document.getElementById('metricReward').textContent = '$0';
+            document.getElementById('metricReward').textContent = '₹0';
             
             switchTab('overview');
         }
