@@ -1,5 +1,5 @@
 # Reinforcement Learning for Inventory Restocking Optimization
-# Complete Python Implementation
+# Complete Python Implementation with INR Currency
 
 import numpy as np
 import tensorflow as tf
@@ -16,8 +16,12 @@ import time
 # Suppress TensorFlow warnings
 tf.get_logger().setLevel('ERROR')
 
+# USD to INR conversion rate
+USD_TO_INR = 83
+
 print(f"TensorFlow Version: {tf.__version__}")
 print(f"NumPy Version: {np.__version__}")
+print(f"Currency: Indian Rupees (INR)")
 
 # =============================================================================
 # PART 1: INVENTORY SIMULATION ENVIRONMENT
@@ -29,7 +33,7 @@ class InventoryEnv(gym.Env):
     
     State: Current inventory level (0-100 units)
     Actions: Discrete order quantities (0, 10, 20, 30, 40, 50 units)
-    Reward: Revenue - Holding Cost - Stockout Cost
+    Reward: Revenue - Holding Cost - Stockout Cost (in INR)
     """
     
     def __init__(self):
@@ -41,10 +45,10 @@ class InventoryEnv(gym.Env):
         self.n_actions = 6              # Number of discrete actions
         self.lead_time = 3              # Order lead time (days)
         
-        # Cost Parameters
-        self.holding_cost = 0.1         # Cost per unit held per day
-        self.stockout_cost = 1.0        # Cost per unit of unmet demand
-        self.unit_price = 2.0           # Revenue per unit sold
+        # Cost Parameters (in INR)
+        self.holding_cost = 0.1 * USD_TO_INR    # ₹8.30 per unit held per day
+        self.stockout_cost = 1.0 * USD_TO_INR   # ₹83 per unit of unmet demand
+        self.unit_price = 2.0 * USD_TO_INR      # ₹166 revenue per unit sold
         
         # Demand Parameters
         self.demand_mean = 20           # Average daily demand
@@ -96,20 +100,21 @@ class InventoryEnv(gym.Env):
         # 5. Update inventory
         self.inventory -= sales
         
-        # 6. Calculate reward
+        # 6. Calculate profit (positive values)
         revenue = sales * self.unit_price
         holding_cost_total = self.inventory * self.holding_cost
         stockout_cost_total = unmet_demand * self.stockout_cost
-        reward = revenue - holding_cost_total - stockout_cost_total
+        profit = revenue - holding_cost_total - stockout_cost_total
         
         # Episode termination
         done = self.day >= 90  # 90-day episodes
         
         return (
             np.array([self.inventory], dtype=np.float32), 
-            reward, 
+            profit, 
             done, 
-            {'unmet_demand': unmet_demand}
+            {'unmet_demand': unmet_demand, 'revenue': revenue, 
+             'holding_cost': holding_cost_total, 'stockout_cost': stockout_cost_total}
         )
 
 
@@ -211,30 +216,29 @@ def fixed_reorder_policy(inventory, reorder_point=20, order_amount_idx=4):
 
 def run_simulation(policy_func, env, episodes=100):
     """Run simulation and return performance metrics"""
-    total_rewards = []
+    total_profits = []
     total_unmet_demands = []
     
     for e in range(episodes):
         state = env.reset()
-        episode_reward = 0
+        episode_profit = 0
         episode_unmet_demand = 0
         done = False
         
         while not done:
             action = policy_func(state[0])
-            next_state, reward, done, info = env.step(action)
+            next_state, profit, done, info = env.step(action)
             state = next_state
-            episode_reward += reward
+            episode_profit += profit
             episode_unmet_demand += info['unmet_demand']
         
-        total_rewards.append(episode_reward)
+        total_profits.append(episode_profit)
         total_unmet_demands.append(episode_unmet_demand)
     
-    avg_reward = np.mean(total_rewards)
+    avg_profit = np.mean(total_profits)
     avg_unmet_demand = np.mean(total_unmet_demands)
-    avg_cost = -avg_reward
     
-    return avg_cost, avg_unmet_demand
+    return avg_profit, avg_unmet_demand
 
 
 # =============================================================================
@@ -244,7 +248,18 @@ def run_simulation(policy_func, env, episodes=100):
 if __name__ == "__main__":
     print("\n" + "="*70)
     print(" REINFORCEMENT LEARNING FOR INVENTORY MANAGEMENT")
+    print(" Currency: Indian Rupees (₹)")
     print("="*70 + "\n")
+    
+    # Display Environment Parameters
+    print("📦 ENVIRONMENT PARAMETERS:")
+    print(f"   • Max Inventory Capacity: 100 units")
+    print(f"   • Average Daily Demand: 20 units")
+    print(f"   • Lead Time: 3 days")
+    print(f"   • Unit Selling Price: ₹{2.0 * USD_TO_INR:.2f}")
+    print(f"   • Holding Cost: ₹{0.1 * USD_TO_INR:.2f} per unit/day")
+    print(f"   • Stockout Cost: ₹{1.0 * USD_TO_INR:.2f} per unmet demand")
+    print(f"   • Episode Length: 90 days\n")
     
     # Setup
     env = InventoryEnv()
@@ -256,34 +271,34 @@ if __name__ == "__main__":
     # Training
     print("--- Starting DQN Agent Training ---\n")
     start_time = time.time()
-    rewards_history = []
+    profits_history = []
     
     for e in range(episodes):
         state = env.reset()
         state = np.reshape(state, [1, state_shape[0]])
-        total_reward = 0
+        total_profit = 0
         
         for step in range(100):  # Max steps per episode
             action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
-            total_reward += reward
+            next_state, profit, done, _ = env.step(action)
+            total_profit += profit
             next_state = np.reshape(next_state, [1, state_shape[0]])
             
             # Store experience
-            agent.remember(state[0][0], action, reward, next_state[0][0], done)
+            agent.remember(state[0][0], action, profit, next_state[0][0], done)
             state = next_state
             
             if done:
                 break
         
-        rewards_history.append(total_reward)
+        profits_history.append(total_profit)
         agent.replay()  # Train after each episode
         
         # Progress updates
         if (e + 1) % 50 == 0:
-            avg_reward = np.mean(rewards_history[-50:])
+            avg_profit = np.mean(profits_history[-50:])
             print(f"Episode: {e + 1:4d}/{episodes} | "
-                  f"Avg Reward (last 50): {avg_reward:7.2f} | "
+                  f"Avg Profit (last 50): ₹{avg_profit:8.2f} | "
                   f"Epsilon: {agent.epsilon:.3f}")
     
     training_time = time.time() - start_time
@@ -299,70 +314,121 @@ if __name__ == "__main__":
         agent.epsilon = 0.0  # Pure exploitation
         return agent.act(state)
     
-    dqn_cost, dqn_unmet = run_simulation(dqn_policy, env, eval_episodes)
+    dqn_profit, dqn_unmet = run_simulation(dqn_policy, env, eval_episodes)
     print(f"🤖 DQN Agent")
-    print(f"   Average Cost: ${dqn_cost:.2f}")
+    print(f"   Average Profit: ₹{dqn_profit:,.2f} per 90-day cycle")
     print(f"   Unmet Demand: {dqn_unmet:.2f} units\n")
     
     # Fixed Policy
-    fixed_cost, fixed_unmet = run_simulation(fixed_reorder_policy, env, eval_episodes)
+    fixed_profit, fixed_unmet = run_simulation(fixed_reorder_policy, env, eval_episodes)
     print(f"📋 Fixed Reorder Policy")
-    print(f"   Average Cost: ${fixed_cost:.2f}")
+    print(f"   Average Profit: ₹{fixed_profit:,.2f} per 90-day cycle")
     print(f"   Unmet Demand: {fixed_unmet:.2f} units\n")
     
     # Performance Comparison
-    improvement = ((fixed_cost - dqn_cost) / fixed_cost) * 100
-    savings = fixed_cost - dqn_cost
+    improvement = ((dqn_profit - fixed_profit) / fixed_profit) * 100
+    additional_profit = dqn_profit - fixed_profit
+    service_level_dqn = (1 - (dqn_unmet / (20 * 90))) * 100
+    service_level_fixed = (1 - (fixed_unmet / (20 * 90))) * 100
     
-    print("--- Performance Summary ---\n")
-    print(f"💰 Cost Savings: ${savings:.2f} per cycle")
-    print(f"📈 Improvement: {improvement:.2f}%")
-    print(f"🎯 Service Level: {100 - (dqn_unmet / (20 * 90) * 100):.1f}%\n")
+    print("=" * 70)
+    print(" PERFORMANCE SUMMARY")
+    print("=" * 70)
+    print(f"\n💰 Additional Profit (DQN vs Fixed): ₹{additional_profit:,.2f} per cycle")
+    print(f"📈 Profit Improvement: {improvement:.2f}%")
+    print(f"🎯 DQN Service Level: {service_level_dqn:.1f}%")
+    print(f"🎯 Fixed Service Level: {service_level_fixed:.1f}%")
+    print(f"✨ Service Level Improvement: {service_level_dqn - service_level_fixed:.1f}%\n")
+    
+    # Annual Projection
+    cycles_per_year = 365 / 90
+    annual_additional_profit = additional_profit * cycles_per_year
+    print(f"💵 Projected Annual Additional Profit: ₹{annual_additional_profit:,.2f}\n")
     
     # Visualization
     print("--- Generating Visualizations ---\n")
     
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+    fig = plt.figure(figsize=(18, 6))
     
     # Plot 1: Training Progress
-    ax1.plot(rewards_history, alpha=0.6, linewidth=1, label='Episode Reward')
-    moving_avg = [np.mean(rewards_history[max(0, i-20):i+1]) 
-                  for i in range(len(rewards_history))]
+    ax1 = plt.subplot(1, 3, 1)
+    ax1.plot(profits_history, alpha=0.6, linewidth=1, label='Episode Profit', color='#3b82f6')
+    moving_avg = [np.mean(profits_history[max(0, i-20):i+1]) 
+                  for i in range(len(profits_history))]
     ax1.plot(moving_avg, color='red', linewidth=3, label='Moving Average (20)')
     ax1.set_title('DQN Training Progress', fontsize=14, fontweight='bold')
     ax1.set_xlabel('Episode', fontsize=12)
-    ax1.set_ylabel('Total Reward ($)', fontsize=12)
+    ax1.set_ylabel('Total Profit (₹)', fontsize=12)
     ax1.grid(True, alpha=0.3)
     ax1.legend(fontsize=11)
     
-    # Plot 2: Policy Comparison
-    policies = ['DQN Agent', 'Fixed Policy']
-    costs = [dqn_cost, fixed_cost]
-    colors = ['#3b82f6', '#ef4444']
+    # Format y-axis to show Indian Rupee symbol
+    ax1.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'₹{x:,.0f}'))
     
-    bars = ax2.bar(policies, costs, color=colors, alpha=0.8, edgecolor='black', linewidth=2)
-    ax2.set_title('Performance Comparison', fontsize=14, fontweight='bold')
-    ax2.set_ylabel('Average Cost per Episode ($)', fontsize=12)
+    # Plot 2: Profit Comparison
+    ax2 = plt.subplot(1, 3, 2)
+    policies = ['DQN Agent', 'Fixed Policy']
+    profits = [dqn_profit, fixed_profit]
+    colors = ['#10b981', '#ef4444']
+    
+    bars = ax2.bar(policies, profits, color=colors, alpha=0.8, edgecolor='black', linewidth=2)
+    ax2.set_title('Profit Comparison', fontsize=14, fontweight='bold')
+    ax2.set_ylabel('Average Profit per 90-Day Cycle (₹)', fontsize=12)
     ax2.grid(axis='y', linestyle='--', alpha=0.4)
     
     # Add value labels on bars
     for bar in bars:
         height = bar.get_height()
         ax2.text(bar.get_x() + bar.get_width()/2., height,
-                f'${height:.2f}',
+                f'₹{height:,.2f}',
                 ha='center', va='bottom', fontsize=11, fontweight='bold')
     
     # Add improvement annotation
     ax2.annotate(f'{improvement:.1f}% Better', 
-                xy=(0.5, max(costs) * 0.95),
+                xy=(0.5, max(profits) * 0.95),
                 ha='center', fontsize=12, 
                 bbox=dict(boxstyle='round,pad=0.5', facecolor='lightgreen', alpha=0.8))
     
+    # Format y-axis
+    ax2.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'₹{x:,.0f}'))
+    
+    # Plot 3: Service Level Comparison
+    ax3 = plt.subplot(1, 3, 3)
+    service_levels = [service_level_dqn, service_level_fixed]
+    colors_sl = ['#3b82f6', '#f59e0b']
+    
+    bars_sl = ax3.bar(policies, service_levels, color=colors_sl, alpha=0.8, edgecolor='black', linewidth=2)
+    ax3.set_title('Service Level Comparison', fontsize=14, fontweight='bold')
+    ax3.set_ylabel('Service Level (%)', fontsize=12)
+    ax3.set_ylim([90, 100])
+    ax3.grid(axis='y', linestyle='--', alpha=0.4)
+    
+    # Add value labels on bars
+    for bar in bars_sl:
+        height = bar.get_height()
+        ax3.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.1f}%',
+                ha='center', va='bottom', fontsize=11, fontweight='bold')
+    
     plt.tight_layout()
-    plt.savefig('inventory_rl_results.png', dpi=300, bbox_inches='tight')
-    print("✅ Results saved to 'inventory_rl_results.png'\n")
+    plt.savefig('inventory_rl_results_inr.png', dpi=300, bbox_inches='tight')
+    print("✅ Results saved to 'inventory_rl_results_inr.png'\n")
     plt.show()
     
-    print("="*70)
-    print(" TRAINING AND EVALUATION COMPLETE!")
-    print("="*70)
+    # Summary Table
+    print("=" * 70)
+    print(" DETAILED COMPARISON TABLE")
+    print("=" * 70)
+    print(f"{'Metric':<30} {'DQN Agent':<20} {'Fixed Policy':<20}")
+    print("-" * 70)
+    print(f"{'Average Profit (₹)':<30} {f'₹{dqn_profit:,.2f}':<20} {f'₹{fixed_profit:,.2f}':<20}")
+    print(f"{'Unmet Demand (units)':<30} {f'{dqn_unmet:.2f}':<20} {f'{fixed_unmet:.2f}':<20}")
+    print(f"{'Service Level (%)':<30} {f'{service_level_dqn:.2f}%':<20} {f'{service_level_fixed:.2f}%':<20}")
+    print(f"{'Profit Improvement':<30} {f'+{improvement:.2f}%':<20} {'Baseline':<20}")
+    print(f"{'Additional Profit (₹)':<30} {f'+₹{additional_profit:,.2f}':<20} {'-':<20}")
+    print("=" * 70)
+    
+    print("\n🎉 TRAINING AND EVALUATION COMPLETE!")
+    print(f"💡 The DQN agent generates ₹{additional_profit:,.2f} more profit per cycle")
+    print(f"💡 Projected annual additional profit: ₹{annual_additional_profit:,.2f}")
+    print("=" * 70)
