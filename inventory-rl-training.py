@@ -1,5 +1,4 @@
 # Reinforcement Learning for Inventory Restocking Optimization
-# Complete Python Implementation with INR Currency
 
 import numpy as np
 import tensorflow as tf
@@ -23,9 +22,9 @@ print(f"TensorFlow Version: {tf.__version__}")
 print(f"NumPy Version: {np.__version__}")
 print(f"Currency: Indian Rupees (INR)")
 
-# =============================================================================
+
 # PART 1: INVENTORY SIMULATION ENVIRONMENT
-# =============================================================================
+
 
 class InventoryEnv(gym.Env):
     """
@@ -118,9 +117,9 @@ class InventoryEnv(gym.Env):
         )
 
 
-# =============================================================================
+
 # PART 2: DEEP Q-NETWORK (DQN) AGENT
-# =============================================================================
+
 
 class DQNAgent:
     """Deep Q-Network Agent for Inventory Management"""
@@ -196,9 +195,8 @@ class DQNAgent:
             self.epsilon *= self.epsilon_decay
 
 
-# =============================================================================
 # PART 3: BASELINE POLICY
-# =============================================================================
+
 
 def fixed_reorder_policy(inventory, reorder_point=20, order_amount_idx=4):
     """
@@ -210,9 +208,9 @@ def fixed_reorder_policy(inventory, reorder_point=20, order_amount_idx=4):
     return 0  # No order
 
 
-# =============================================================================
+
 # PART 4: POLICY EVALUATION
-# =============================================================================
+
 
 def run_simulation(policy_func, env, episodes=100):
     """Run simulation and return performance metrics"""
@@ -241,9 +239,9 @@ def run_simulation(policy_func, env, episodes=100):
     return avg_profit, avg_unmet_demand
 
 
-# =============================================================================
+
 # PART 5: MAIN TRAINING AND EVALUATION
-# =============================================================================
+
 
 if __name__ == "__main__":
     print("\n" + "="*70)
