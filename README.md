@@ -26,7 +26,7 @@ For a smoke run:
 python reproduce.py --quick
 ```
 
-The run preserves experiment subdirectories, refreshes only the main-run files, and tees console output to `results/run_log.txt`. The CPU name is recorded in `results/env_info.json`. Final DQN hyperparameters are frozen in `config.py`; test seeds begin at 1,000,000 and tuning seeds use a separate validation range.
+The run preserves experiment subdirectories, refreshes only the main-run files, and tees console output to `results/run_log.txt`. The CPU name and Windows 11 build are recorded in `results/env_info.json`. Final DQN hyperparameters are frozen in `config.py`; test seeds begin at 1,000,000 and tuning seeds use a separate validation range.
 
 ## Experiment Commands
 
@@ -43,11 +43,13 @@ Non-stationary evaluations include both a stationary-tuned zero-shot `(s,S)` com
 Runtime depends on CPU and episode counts; `--quick` is the inexpensive validation path. The main run writes:
 
 - `evaluation_results.csv`, including `discarded_stock` per episode
-- `tuned_ss.json`, `summary_statistics.csv`, `per_seed_profit.csv`, and `hypothesis_tests.json`
+- `tuned_ss.json`, `summary_statistics.csv`, `per_seed_profit.csv`, `hypothesis_tests.json`, and `latency_benchmark.json`
 - `fig1` through `fig6` as PDF and PNG files
 - `env_info.json` and `run_log.txt`
 
 All evaluation policies use common random-number episode seeds. The primary policy is explicitly DQN, or Double DQN when that is the available learned policy. The result is plain: DQN beats Fixed Reorder and EOQ, but trails the tuned `(s,S)` policy.
+
+The inventory-only ablation is reported as a failed-to-learn variant: its policies choose only 0 or 10-unit actions and achieve very low service, rather than matching the full state agent.
 
 | Policy | Mean profit per episode (₹) |
 | --- | ---: |

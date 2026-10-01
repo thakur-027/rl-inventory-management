@@ -154,7 +154,7 @@ def run_sensitivity_study(
         config_key = repr(e_cfg)
         if config_key in completed_configs:
             source_dir = completed_configs[config_key]
-            for filename in ("training_log.csv", "evaluation_results.csv", "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json"):
+            for filename in ("training_log.csv", "evaluation_results.csv", "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json", "latency_benchmark.json"):
                 source = os.path.join(source_dir, filename)
                 target = os.path.join(sub_dir, filename)
                 if os.path.exists(source) and not os.path.exists(target):
@@ -387,7 +387,18 @@ def _append_summary_rows(
     out: List[Dict[str, Any]],
 ) -> None:
     """Append rows from an already-completed sensitivity run."""
-    _collect_summary(sub_dir, scenario_name, "Sensitivity", out)
+    summary_csv = os.path.join(sub_dir, "summary_statistics.csv")
+    if not os.path.exists(summary_csv):
+        return
+    with open(summary_csv, "r", encoding="utf-8") as f:
+        for row in csv.DictReader(f):
+            out.append({
+                "Scenario": scenario_name,
+                "Policy": row["policy"],
+                "Mean_Profit": float(row["profit_mean"]),
+                "Service_Level": float(row["service_level_mean"]),
+                "Avg_Inventory": float(row["avg_inventory_mean"]),
+            })
 
 
 if __name__ == "__main__":

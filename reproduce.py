@@ -59,7 +59,7 @@ def run_pipeline(
     os.makedirs(results_dir, exist_ok=True)
     for filename in (
         "env_info.json", "training_log.csv", "evaluation_results.csv",
-        "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json",
+        "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json", "latency_benchmark.json",
     ):
         path = os.path.join(results_dir, filename)
         if os.path.exists(path):

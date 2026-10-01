@@ -1,5 +1,5 @@
 {
-  "os": "Windows-10-10.0.26300-SP0",
+  "os": "Windows 11-10.0.26300-SP0",
   "system": "Windows",
   "release": "10",
   "architecture": "64bit",
@@ -12,9 +12,10 @@
     "OMP_NUM_THREADS": "1",
     "MKL_NUM_THREADS": "1"
   },
-  "timestamp": "2026-10-01 01:21:44 UTC",
+  "timestamp": "2026-10-01 02:32:01 UTC",
+  "windows_release": "Windows 11",
   "scipy_version": "1.17.1",
   "matplotlib_version": "3.11.2",
   "total_ram_gb": 15.52,
-  "mean_training_time_sec": 6.971566380001605
+  "mean_training_time_sec": 7.2830191200017
 }

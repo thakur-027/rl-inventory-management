@@ -113,6 +113,19 @@ def run_episode(
     }
 
 
+def benchmark_policy(policy: BasePolicy, env_cfg: EnvConfig) -> float:
+    """Benchmark policy inference separately from deterministic episode logs."""
+    benchmark_env = InventoryEnv(env_cfg)
+    obs, _ = benchmark_env.reset(seed=1_234_567)
+    for _ in range(100):
+        policy.act(obs)
+    start = time.perf_counter()
+    for _ in range(10_000):
+        policy.act(obs)
+    elapsed = time.perf_counter() - start
+    return elapsed / 10_000.0 * 1e6
+
+
 def evaluate_all(
     env_cfg: Optional[EnvConfig] = None,
     train_cfg: Optional[TrainConfig] = None,
@@ -132,6 +145,7 @@ def evaluate_all(
 
     os.makedirs(results_dir, exist_ok=True)
     csv_path = os.path.join(results_dir, "evaluation_results.csv")
+    latency_path = os.path.join(results_dir, "latency_benchmark.json")
 
     eval_env = InventoryEnv(env_cfg)
 
@@ -173,6 +187,7 @@ def evaluate_all(
     # 2. Build non-learning baselines
     fixed_policy = FixedReorderPolicy(env_cfg, base_cfg=base_cfg)
     eoq_policy = EOQPolicy(env_cfg, service_z=base_cfg.eoq_service_z)
+    latency_samples: Dict[str, List[float]] = {}
 
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
@@ -208,6 +223,7 @@ def evaluate_all(
             )
         
         for pol_name, pol_obj in baselines:
+            latency_samples.setdefault(pol_name, []).append(benchmark_policy(pol_obj, env_cfg))
             for ep_idx, ep_seed in enumerate(common_seeds, start=1):
                 res = run_episode(eval_env, pol_obj, ep_seed)
                 writer.writerow([
@@ -256,6 +272,7 @@ def evaluate_all(
                 policies_to_eval.append(("DoubleDQN", DQNEvalWrapper(ddqn_agent)))
 
             for pol_name, pol_obj in policies_to_eval:
+                latency_samples.setdefault(pol_name, []).append(benchmark_policy(pol_obj, env_cfg))
                 pol_profits = []
                 pol_sls = []
                 t_pol_start = time.perf_counter()
@@ -293,7 +310,13 @@ def evaluate_all(
                     f"Service Level: {mean_sl:5.2f}% | Time: {pol_dur:4.2f}s"
                 )
 
+    with open(latency_path, "w", encoding="utf-8") as f:
+        json.dump({
+            policy: float(np.mean(samples))
+            for policy, samples in latency_samples.items()
+        }, f, indent=2)
     print(f"\nEvaluation complete! Detailed per-episode results saved to: {csv_path}")
+    print(f"Latency benchmarks saved to: {latency_path}")
     return csv_path
 
 

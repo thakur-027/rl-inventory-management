@@ -159,6 +159,12 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
         return
     os.makedirs(results_dir, exist_ok=True)
 
+    latency_benchmarks = {}
+    latency_path = os.path.join(results_dir, "latency_benchmark.json")
+    if os.path.exists(latency_path):
+        with open(latency_path, "r", encoding="utf-8") as f:
+            latency_benchmarks = json.load(f)
+
     # Read rows
     records = []
     with open(csv_path, "r", encoding="utf-8") as f:
@@ -203,7 +209,10 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
         for ep in sorted(ep_dict.keys()):
             rows = ep_dict[ep]
             for k in metric_keys:
-                avg_val = np.mean([r[k] for r in rows])
+                if k == "decision_time_us" and pol in latency_benchmarks:
+                    avg_val = float(latency_benchmarks[pol])
+                else:
+                    avg_val = np.mean([r[k] for r in rows])
                 policy_data[pol][k].append(avg_val)
 
     # 1. Summary Statistics Table
@@ -335,6 +344,7 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
             test_results.append({
                 "base_pol": base_pol,
                 "mean_diff": mean_diff,
+                "base_profit_mean": float(np.mean(base_profits)),
                 "t_stat": t_stat,
                 "p_val_t": p_val_t,
                 "w_stat": w_stat,
@@ -361,8 +371,8 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
             hypothesis_results[res["base_pol"]] = {
                 "mean_profit_difference": res["mean_diff"],
                 "primary_policy_profit_improvement_percent": (
-                    res["mean_diff"] / abs(float(np.mean(base_profits))) * 100.0
-                    if np.mean(base_profits) != 0 else 0.0
+                    res["mean_diff"] / abs(res["base_profit_mean"]) * 100.0
+                    if res["base_profit_mean"] != 0 else 0.0
                 ),
                 "t_statistic": res["t_stat"],
                 "p_value_paired_t_adj": adj_p_t[i],

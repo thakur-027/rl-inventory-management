@@ -1,7 +1,7 @@
 {
   "FixedReorder": {
     "mean_profit_difference": 72379.6175,
-    "primary_policy_profit_improvement_percent": 30.09693296993388,
+    "primary_policy_profit_improvement_percent": 43.99517071734525,
     "t_statistic": 93.99976380731881,
     "p_value_paired_t_adj": 2.2652631053821128e-166,
     "wilcoxon_statistic": 0.0,
@@ -13,7 +13,7 @@
   },
   "EOQ": {
     "mean_profit_difference": 15549.5925,
-    "primary_policy_profit_improvement_percent": 6.465840237167414,
+    "primary_policy_profit_improvement_percent": 7.024977782360824,
     "t_statistic": 35.83911656366571,
     "p_value_paired_t_adj": 1.8984234921257298e-88,
     "wilcoxon_statistic": 5.0,

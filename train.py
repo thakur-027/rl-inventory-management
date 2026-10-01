@@ -63,6 +63,11 @@ def record_env_info(output_path: str) -> Dict[str, Any]:
         },
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime()),
     }
+
+    if platform.system() == "Windows":
+        build_number = int(platform.version().split(".")[-1])
+        info["windows_release"] = "Windows 11" if build_number >= 22000 else "Windows 10"
+        info["os"] = info["os"].replace("Windows-10", info["windows_release"])
     
     try:
         import scipy

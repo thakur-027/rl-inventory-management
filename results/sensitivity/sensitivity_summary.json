@@ -85,7 +85,6 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
-    "Training": "Sensitivity",
     "Policy": "FixedReorder",
     "Mean_Profit": 164517.1875,
     "Service_Level": 81.9783,
@@ -93,7 +92,6 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
-    "Training": "Sensitivity",
     "Policy": "EOQ",
     "Mean_Profit": 221347.2125,
     "Service_Level": 92.71175000000001,
@@ -101,7 +99,6 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
-    "Training": "Sensitivity",
     "Policy": "(s,S)[90,100]",
     "Mean_Profit": 240488.35,
     "Service_Level": 98.11055,
@@ -109,7 +106,6 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
-    "Training": "Sensitivity",
     "Policy": "DQN",
     "Mean_Profit": 234276.45,
     "Service_Level": 95.78118,
