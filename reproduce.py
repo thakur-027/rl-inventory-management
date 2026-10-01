@@ -2,7 +2,7 @@
 
 Executes:
 1. Training across independent seeds with system profiling (env_info.json)
-2. Evaluation using Common Random Numbers against all baselines (Fixed, EOQ, tuned (s,S), DP)
+2. Evaluation using Common Random Numbers against all baselines (Fixed, EOQ, tuned (s,S))
 3. Statistical analysis: 95% CIs, paired t-tests, Wilcoxon signed-rank tests, cost breakdown
 4. Publication-ready vector figure generation (.pdf and .png)
 """
@@ -15,9 +15,9 @@ for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS"):
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 import argparse
+import contextlib
 import sys
 import time
-import shutil
 
 if sys.stdout and hasattr(sys.stdout, "reconfigure"):
     try:
@@ -33,17 +33,38 @@ from analyze import analyze_results
 from plots import generate_all_plots
 
 
+class Tee:
+    """Write console output to both the terminal and a run log."""
+
+    def __init__(self, *streams):
+        self.streams = streams
+
+    def write(self, text):
+        for stream in self.streams:
+            stream.write(text)
+            stream.flush()
+
+    def flush(self):
+        for stream in self.streams:
+            stream.flush()
+
+
 def run_pipeline(
     episodes: int = 500,
     eval_episodes: int = 200,
     seeds: list[int] = [42, 123, 456, 789, 1024],
     results_dir: str = "results",
-    include_dp: bool = True,
     double_dqn: bool = False,
 ) -> None:
-    if os.path.exists(results_dir):
-        shutil.rmtree(results_dir, ignore_errors=True)
-        print(f"Cleaned up previous {results_dir} directory.")
+    os.makedirs(results_dir, exist_ok=True)
+    for filename in (
+        "env_info.json", "training_log.csv", "evaluation_results.csv",
+        "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json",
+    ):
+        path = os.path.join(results_dir, filename)
+        if os.path.exists(path):
+            os.remove(path)
+    print(f"Reusing experiment directories under {results_dir}; refreshed main-run files only.")
 
     t_start = time.perf_counter()
     print("=" * 80)
@@ -69,7 +90,6 @@ def run_pipeline(
         base_cfg=b_cfg,
         seeds=seeds,
         eval_episodes=eval_episodes,
-        include_dp=include_dp,
         results_dir=results_dir,
     )
 
@@ -95,7 +115,6 @@ if __name__ == "__main__":
     parser.add_argument("--eval-episodes", type=int, default=None, help="Custom evaluation episodes")
     parser.add_argument("--seeds", type=int, nargs="+", default=None, help="Custom seeds")
     parser.add_argument("--results-dir", type=str, default="results", help="Output directory")
-    parser.add_argument("--include-dp", action="store_true", default=False, help="Include DP Value Iteration baseline")
     parser.add_argument("--double-dqn", action="store_true", help="Train Double DQN variant")
     args = parser.parse_args()
 
@@ -108,11 +127,14 @@ if __name__ == "__main__":
         eval_episodes = args.eval_episodes or 200
         seeds = args.seeds or [42, 123, 456, 789, 1024]
 
-    run_pipeline(
-        episodes=episodes,
-        eval_episodes=eval_episodes,
-        seeds=seeds,
-        results_dir=args.results_dir,
-        include_dp=args.include_dp,
-        double_dqn=args.double_dqn,
-    )
+    os.makedirs(args.results_dir, exist_ok=True)
+    log_path = os.path.join(args.results_dir, "run_log.txt")
+    with open(log_path, "w", encoding="utf-8") as log_file:
+        with contextlib.redirect_stdout(Tee(sys.__stdout__, log_file)), contextlib.redirect_stderr(Tee(sys.__stderr__, log_file)):
+            run_pipeline(
+                episodes=episodes,
+                eval_episodes=eval_episodes,
+                seeds=seeds,
+                results_dir=args.results_dir,
+                double_dqn=args.double_dqn,
+            )

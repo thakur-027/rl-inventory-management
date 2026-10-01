@@ -1,10 +1,11 @@
 {
   "FixedReorder": {
     "mean_profit_difference": 55289.74,
+    "primary_policy_profit_improvement_percent": 22.912138642089907,
     "t_statistic": 52.846257619316944,
-    "p_value_paired_t_adj": 1.3351464061517274e-118,
+    "p_value_paired_t_adj": 1.7801952082023033e-118,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
     "cohen_d": 3.7367947122950262,
     "dqn_win_rate_percent": 100.0,
     "statistically_significant_05": true,
@@ -12,21 +13,35 @@
   },
   "EOQ": {
     "mean_profit_difference": 17186.34,
+    "primary_policy_profit_improvement_percent": 7.12204117491049,
     "t_statistic": 36.82585085747482,
-    "p_value_paired_t_adj": 1.7263905096459134e-90,
+    "p_value_paired_t_adj": 2.58958576446887e-90,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
     "cohen_d": 2.6039808864284875,
     "dqn_win_rate_percent": 100.0,
     "statistically_significant_05": true,
     "p_value_tost_1pct": 1.0
   },
-  "(s,S)[100,105]": {
+  "(s,S)[90,100]": {
+    "mean_profit_difference": -10132.335,
+    "primary_policy_profit_improvement_percent": -4.19885252287495,
+    "t_statistic": -34.47895300173337,
+    "p_value_paired_t_adj": 1.4476325599963847e-85,
+    "wilcoxon_statistic": 0.0,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
+    "cohen_d": -2.4380301475737935,
+    "dqn_win_rate_percent": 0.0,
+    "statistically_significant_05": true,
+    "p_value_tost_1pct": 1.0
+  },
+  "(s,S)-Retuned[100,105]": {
     "mean_profit_difference": -11278.0975,
+    "primary_policy_profit_improvement_percent": -4.673657961477257,
     "t_statistic": -31.22459450694318,
     "p_value_paired_t_adj": 1.2493244433558352e-78,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
     "cohen_d": -2.2079122515659746,
     "dqn_win_rate_percent": 0.0,
     "statistically_significant_05": true,

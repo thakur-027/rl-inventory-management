@@ -43,3 +43,8 @@ ehthumbs.db
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
+
+# Generated experiment outputs
+results/**/*.npz
+results/**/run_log.txt
+results/**/raw/

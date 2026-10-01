@@ -1,7 +1,6 @@
 """DQN Agent implementation with Target Network, Double DQN, and Adam optimizer.
 
-Pure NumPy implementation: fully deterministic, thread-safe, blazingly fast,
-and completely independent of heavy framework dependencies.
+Pure NumPy implementation, independent of heavy framework dependencies.
 
 Features:
 - MLP Q-network with customizable hidden layers (default: [32, 32])

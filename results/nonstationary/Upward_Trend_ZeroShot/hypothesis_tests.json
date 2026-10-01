@@ -1,10 +1,11 @@
 {
   "FixedReorder": {
     "mean_profit_difference": -63627.6425,
+    "primary_policy_profit_improvement_percent": -19.95932701199208,
     "t_statistic": -48.88656126814898,
     "p_value_paired_t_adj": 1.589154343836079e-112,
     "wilcoxon_statistic": 1.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
     "cohen_d": -3.4568018981599766,
     "dqn_win_rate_percent": 0.5,
     "statistically_significant_05": true,
@@ -12,22 +13,36 @@
   },
   "EOQ": {
     "mean_profit_difference": -24578.13,
+    "primary_policy_profit_improvement_percent": -7.70990272055503,
     "t_statistic": -47.597427551217955,
     "p_value_paired_t_adj": 1.068215663712209e-110,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
     "cohen_d": -3.3656463788501627,
     "dqn_win_rate_percent": 0.0,
     "statistically_significant_05": true,
     "p_value_tost_1pct": 1.0
   },
-  "(s,S)[120,135]": {
-    "mean_profit_difference": -126618.48,
-    "t_statistic": -155.93777800172478,
-    "p_value_paired_t_adj": 1.64895039191553e-209,
+  "(s,S)[90,100]": {
+    "mean_profit_difference": -71825.1175,
+    "primary_policy_profit_improvement_percent": -22.53078931625126,
+    "t_statistic": -180.52011121063842,
+    "p_value_paired_t_adj": 6.019295887227474e-222,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308439238284057e-34,
-    "cohen_d": -11.026466026818202,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
+    "cohen_d": -12.76469947775921,
+    "dqn_win_rate_percent": 0.0,
+    "statistically_significant_05": true,
+    "p_value_tost_1pct": 1.0
+  },
+  "(s,S)-Retuned[125,135]": {
+    "mean_profit_difference": -126566.0175,
+    "primary_policy_profit_improvement_percent": -39.7024380070032,
+    "t_statistic": -156.1014448687288,
+    "p_value_paired_t_adj": 1.3405357474246114e-209,
+    "wilcoxon_statistic": 0.0,
+    "p_value_wilcoxon_adj": 5.744504743115855e-34,
+    "cohen_d": -11.038039021969611,
     "dqn_win_rate_percent": 0.0,
     "statistically_significant_05": true,
     "p_value_tost_1pct": 1.0

@@ -1,33 +1,36 @@
 {
-  "EOQ": {
-    "mean_profit_difference": -56830.025,
-    "t_statistic": -71.62629642591784,
-    "p_value_paired_t_adj": 4.921909076389139e-144,
+  "FixedReorder": {
+    "mean_profit_difference": 57558.675,
+    "primary_policy_profit_improvement_percent": 23.850868555629052,
+    "t_statistic": 22.671058410152202,
+    "p_value_paired_t_adj": 6.448103410918101e-15,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308378557336891e-34,
-    "cohen_d": -5.064743991404428,
-    "dqn_win_rate_percent": 0.0,
+    "p_value_wilcoxon_adj": 5.7220458984375e-06,
+    "cohen_d": 5.069402772696862,
+    "dqn_win_rate_percent": 100.0,
     "statistically_significant_05": true,
-    "p_value_tost_1pct": 1.0
+    "p_value_tost_1pct": 0.9999999999999972
+  },
+  "EOQ": {
+    "mean_profit_difference": -1112.575,
+    "primary_policy_profit_improvement_percent": -0.46102312263579714,
+    "t_statistic": -0.8341859280334015,
+    "p_value_paired_t_adj": 0.41454160250164007,
+    "wilcoxon_statistic": 85.0,
+    "p_value_wilcoxon_adj": 0.47490501403808594,
+    "cohen_d": -0.18652964409564332,
+    "dqn_win_rate_percent": 45.0,
+    "statistically_significant_05": false,
+    "p_value_tost_1pct": 0.20567266827840047
   },
   "(s,S)[90,100]": {
-    "mean_profit_difference": -75971.1625,
-    "t_statistic": -97.02436614816641,
-    "p_value_paired_t_adj": 4.7448966482403836e-169,
+    "mean_profit_difference": -19147.325,
+    "primary_policy_profit_improvement_percent": -7.934170336042482,
+    "t_statistic": -34.70533420385071,
+    "p_value_paired_t_adj": 3.573562256849314e-18,
     "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308378557336891e-34,
-    "cohen_d": -6.860658724369497,
-    "dqn_win_rate_percent": 0.0,
-    "statistically_significant_05": true,
-    "p_value_tost_1pct": 1.0
-  },
-  "DoubleDQN": {
-    "mean_profit_difference": -70661.855,
-    "t_statistic": -91.77969657132935,
-    "p_value_paired_t_adj": 1.5788138922451968e-164,
-    "wilcoxon_statistic": 0.0,
-    "p_value_wilcoxon_adj": 4.308378557336891e-34,
-    "cohen_d": -6.48980458208307,
+    "p_value_wilcoxon_adj": 5.7220458984375e-06,
+    "cohen_d": -7.760348646165875,
     "dqn_win_rate_percent": 0.0,
     "statistically_significant_05": true,
     "p_value_tost_1pct": 1.0

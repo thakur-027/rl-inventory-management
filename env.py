@@ -1,4 +1,7 @@
-"""Gymnasium-compatible inventory management environment.
+"""Inventory management environment following the Gymnasium API.
+
+This implementation follows the Gymnasium reset/step API but does not
+subclass ``gym.Env``.
 
 Observation
 -----------
@@ -28,7 +31,7 @@ Timing convention (within one call to ``step(action)``)
 4. Inventory updated: I_end = I − sales.
 5. Holding cost levied on **end-of-day** inventory.
 
-Gymnasium 0.26+ API
+Gymnasium 0.26+ API shape
 --------------------
 reset(seed)  →  (obs, info)
 step(action) →  (obs, reward, terminated, truncated, info)

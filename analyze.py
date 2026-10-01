@@ -157,6 +157,7 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
     if not os.path.exists(csv_path):
         print(f"Error: {csv_path} does not exist.")
         return
+    os.makedirs(results_dir, exist_ok=True)
 
     # Read rows
     records = []
@@ -177,6 +178,7 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
                 "average_inventory": float(r["average_inventory"]),
                 "unmet": int(r["unmet"]),
                 "demand": int(r["demand"]),
+                "discarded_stock": int(float(r.get("discarded_stock", 0))),
                 "service_level": float(r["service_level"]) * 100.0,  # in %
                 "decision_time_us": float(r.get("decision_time_us", 0.0)),
             })
@@ -187,7 +189,8 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
 
     metric_keys = [
         "profit", "revenue", "procurement", "holding", "stockout",
-        "ordering", "number_of_orders", "average_inventory", "unmet", "demand", "service_level", "decision_time_us"
+        "ordering", "number_of_orders", "average_inventory", "unmet", "demand",
+        "discarded_stock", "service_level", "decision_time_us"
     ]
 
     # Group by policy and episode, averaging over seeds
@@ -206,7 +209,7 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
     # 1. Summary Statistics Table
     summary_rows = []
     print("\n" + "=" * 105)
-    print("TABLE I: OVERALL PERFORMANCE SUMMARY (Across All Seeds & Episodes)")
+    print("TABLE I: OVERALL PERFORMANCE SUMMARY (Seed-averaged, n = 200 paired episodes)")
     print("=" * 105)
     header = (
         f"{'Policy':<22} | {'Profit (INR) [95% CI]':<26} | {'Std Dev':<9} | "
@@ -286,8 +289,13 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
         )
     print("=" * 105)
 
-    # 3. Paired Hypothesis Tests vs DQN
-    primary_policy = "DQN" if "DQN" in policy_data else list(policy_data.keys())[0]
+    # 3. Paired Hypothesis Tests vs the explicitly selected learned policy.
+    if "DQN" in policy_data:
+        primary_policy = "DQN"
+    elif "DoubleDQN" in policy_data:
+        primary_policy = "DoubleDQN"
+    else:
+        raise ValueError("Evaluation results must contain DQN or DoubleDQN records.")
     hypothesis_results: Dict[str, Any] = {}
 
     if primary_policy in policy_data:
@@ -352,6 +360,10 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
 
             hypothesis_results[res["base_pol"]] = {
                 "mean_profit_difference": res["mean_diff"],
+                "primary_policy_profit_improvement_percent": (
+                    res["mean_diff"] / abs(float(np.mean(base_profits))) * 100.0
+                    if np.mean(base_profits) != 0 else 0.0
+                ),
                 "t_statistic": res["t_stat"],
                 "p_value_paired_t_adj": adj_p_t[i],
                 "wilcoxon_statistic": res["w_stat"],
@@ -365,10 +377,25 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
                 print(f"\n[TOST Equivalence] {primary_policy} vs {res['base_pol']} (±1% margin): p-value = {res['p_tost']:.4f}")
         print("=" * 105)
 
+    # Add percentage improvements against every baseline to the summary.
+    baseline_means = {
+        row["policy"]: row["profit_mean"]
+        for row in summary_rows
+        if row["policy"] not in ("DQN", "DoubleDQN")
+    }
+    for row in summary_rows:
+        for baseline, baseline_mean in baseline_means.items():
+            if baseline_mean:
+                safe_name = "".join(ch if ch.isalnum() else "_" for ch in baseline).strip("_").lower()
+                row[f"profit_improvement_vs_{safe_name}_percent"] = (
+                    (row["profit_mean"] - baseline_mean) / abs(baseline_mean) * 100.0
+                )
+
     # 4. Per-Seed Breakdown
     print(f"\n" + "=" * 105)
-    print("TABLE IV: PER-SEED PROFIT BREAKDOWN (INR Mean per Episode)")
+    print("TABLE IV: PER-SEED PROFIT BREAKDOWN (INR Mean +/- Std across Seeds)")
     print("=" * 105)
+
     # Group by seed and policy
     seed_pol_profit = defaultdict(lambda: defaultdict(list))
     all_seeds = sorted(list({r["seed"] for r in records if r["seed"] != "Baseline"}))
@@ -390,6 +417,26 @@ def analyze_results(csv_path: str, results_dir: str = "results") -> None:
             vals.append(f"{val:<18}")
         print(row_str + " | ".join(vals))
     print("=" * 105)
+
+    per_seed_rows = []
+    for policy in all_pols:
+        seed_means = [
+            float(np.mean(seed_pol_profit[s][policy]))
+            for s in all_seeds
+            if seed_pol_profit[s].get(policy)
+        ]
+        per_seed_rows.append({
+            "policy": policy,
+            "profit_mean_across_seeds": float(np.mean(seed_means)) if seed_means else 0.0,
+            "profit_std_across_seeds": float(np.std(seed_means, ddof=1)) if len(seed_means) > 1 else 0.0,
+            "n_seeds": len(seed_means),
+        })
+    per_seed_path = os.path.join(results_dir, "per_seed_profit.csv")
+    with open(per_seed_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=list(per_seed_rows[0].keys()))
+        writer.writeheader()
+        writer.writerows(per_seed_rows)
+    print(f"Saved per-seed profit table to: {per_seed_path}")
 
     # Save summary CSV
     summary_csv_path = os.path.join(results_dir, "summary_statistics.csv")

@@ -11,13 +11,19 @@ Features:
 
 from __future__ import annotations
 
+import os
+import sys
+
+# Force single-threaded CPU consistency before NumPy initializes any thread pools
+for k in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ[k] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import argparse
 import csv
 import json
-import os
 import platform
 import random
-import sys
 import time
 from typing import Dict, Any, List, Optional
 
@@ -29,12 +35,6 @@ if sys.stdout and hasattr(sys.stdout, "reconfigure"):
         sys.stderr.reconfigure(encoding="utf-8", errors="backslashreplace")
     except Exception:
         pass
-
-# Force single-threaded CPU consistency
-os.environ["OMP_NUM_THREADS"] = "1"
-os.environ["MKL_NUM_THREADS"] = "1"
-os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 from config import EnvConfig, AgentConfig, TrainConfig
 from env import InventoryEnv
@@ -79,8 +79,10 @@ def record_env_info(output_path: str) -> Dict[str, Any]:
     try:
         if platform.system() == "Windows":
             import subprocess
-            cpu_name = subprocess.check_output(["wmic", "cpu", "get", "name"]).decode().split("\n")[1].strip()
-            info["processor"] = cpu_name
+            cmd = ["powershell", "-NoProfile", "-Command", "(Get-CimInstance Win32_Processor).Name"]
+            cpu_name = subprocess.check_output(cmd, text=True).strip()
+            if cpu_name:
+                info["processor"] = cpu_name
     except Exception:
         pass
 

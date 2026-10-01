@@ -81,7 +81,13 @@ class EnvConfig:
 
 @dataclass
 class AgentConfig:
-    """DQN agent hyper-parameters."""
+    """DQN agent hyper-parameters.
+
+    Note: These hyperparameters are frozen for the benchmark. If candidate
+    configurations are tested, evaluations must use a validation seed set
+    (seeds 2,000,000+), logging every tested configuration to tuning_log.csv,
+    leaving the final evaluation test seeds (1,000,000+) strictly untouched.
+    """
 
     gamma: float = 0.95                   # Discount factor
     epsilon_start: float = 1.0            # Initial exploration rate
@@ -110,7 +116,6 @@ class TrainConfig:
 
     episodes: int = 500                   # Training episodes per seed
     eval_episodes: int = 200              # Evaluation episodes per policy/seed
-    n_seeds: int = 5
     seeds: List[int] = field(
         default_factory=lambda: [42, 123, 456, 789, 1024]
     )
@@ -134,12 +139,5 @@ class BaselineConfig:
     # EOQ: Q* = √(2·D·K / h),  s = LT·D + z·√(LT·D)
     eoq_service_z: float = 1.65           # ≈ 95 % cycle service level
 
-    # (s, S) grid search
-    ss_s_values: Tuple[int, ...] = tuple(range(40, 121, 5))   # reorder points
-    ss_S_values: Tuple[int, ...] = tuple(range(60, 141, 5))   # order-up-to levels
+    # (s, S) grid search tuning parameters
     ss_tune_episodes: int = 100           # Episodes used during tuning
-
-    # Optional value-iteration benchmark
-    dp_enabled: bool = False
-    dp_inventory_step: int = 5
-    dp_max_demand: int = 60

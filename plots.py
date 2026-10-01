@@ -104,7 +104,7 @@ def plot_training_dynamics(train_csv_path: str, out_dir: str) -> None:
             x_vals = eps_sorted
 
         col = get_color(pol)
-        ax1.plot(x_vals, smooth_mean, label=f"{pol} Mean Return", color=col, linewidth=2.0)
+        ax1.plot(x_vals, smooth_mean, label=f"{pol} Mean Return", color=col, linewidth=1.2)
         ax1.fill_between(
             x_vals,
             smooth_mean - smooth_std,
@@ -116,7 +116,7 @@ def plot_training_dynamics(train_csv_path: str, out_dir: str) -> None:
 
         # Plot epsilon on twin axis
         eps_vals = [np.mean(ep_epsilons[pol][ep]) for ep in eps_sorted]
-        ax2.plot(eps_sorted, eps_vals, color="#777777", linestyle=":", linewidth=1.5, label="Exploration Rate (ε)")
+        ax2.plot(eps_sorted, eps_vals, color="#777777", linestyle=":", linewidth=1.0, label="Exploration Rate (ε)")
 
     ax1.set_xlabel("Training Episode")
     ax1.set_ylabel("Episode Net Reward (₹)")
@@ -126,7 +126,7 @@ def plot_training_dynamics(train_csv_path: str, out_dir: str) -> None:
 
     lines1, labels1 = ax1.get_legend_handles_labels()
     lines2, labels2 = ax2.get_legend_handles_labels()
-    ax1.legend(lines1 + lines2[:1], labels1 + labels2[:1], loc="lower right", framealpha=0.9)
+    ax1.legend(lines1 + lines2[:1], labels1 + labels2[:1], loc="lower right", framealpha=0.9, fontsize=6)
 
     pdf_path = os.path.join(out_dir, "fig1_training_dynamics.pdf")
     png_path = os.path.join(out_dir, "fig1_training_dynamics.png")
@@ -176,7 +176,7 @@ def plot_profit_comparison(eval_csv_path: str, out_dir: str) -> None:
     # Numeric labels shrunk for IEEE width
     for bar, m, ci in zip(bars, means, cis):
         y_pos = m + ci + (max(means) * 0.02)
-        ax.text(bar.get_x() + bar.get_width() / 2.0, y_pos, f"₹{m/1000:,.0f}k", ha="center", va="bottom", fontsize=6, weight="bold")
+        ax.text(bar.get_x() + bar.get_width() / 2.0, y_pos, f"₹{m/1000:,.1f}k", ha="center", va="bottom", fontsize=6, weight="bold")
 
     y_max = max(means) + max(cis)
     ax.set_ylim(0, y_max * 1.15)
@@ -198,17 +198,20 @@ def plot_service_level(eval_csv_path: str, out_dir: str) -> None:
     if not os.path.exists(eval_csv_path):
         return
 
-    policy_sl = defaultdict(list)
+    policy_sl = defaultdict(lambda: defaultdict(list))
     with open(eval_csv_path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for r in reader:
-            policy_sl[r["policy"]].append(float(r["service_level"]) * 100.0)
+            policy_sl[r["policy"]][int(r["episode"])].append(float(r["service_level"]) * 100.0)
 
     policies = list(policy_sl.keys())
-    means = [np.mean(policy_sl[p]) for p in policies]
-    cis = [1.96 * np.std(policy_sl[p], ddof=1) / np.sqrt(len(policy_sl[p])) for p in policies]
+    episode_values = {
+        policy: np.array([np.mean(values) for values in episodes.values()])
+        for policy, episodes in policy_sl.items()
+    }
+    means = [np.mean(episode_values[p]) for p in policies]
+    cis = [1.96 * np.std(episode_values[p], ddof=1) / np.sqrt(len(episode_values[p])) for p in policies]
     colors = [get_color(p) for p in policies]
-
     fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=300)
     bars = ax.bar(policies, means, yerr=cis, capsize=3, color=colors, alpha=0.88, edgecolor="black", linewidth=0.8)
 
@@ -249,36 +252,34 @@ def plot_cost_breakdown(eval_csv_path: str, out_dir: str) -> None:
         reader = csv.DictReader(f)
         for r in reader:
             pol = r["policy"]
-            data[pol]["Procurement"].append(float(r["procurement"]))
             data[pol]["Holding"].append(float(r["holding"]))
             data[pol]["Stockout"].append(float(r["stockout"]))
             data[pol]["Fixed Order"].append(float(r["ordering"]))
 
     policies = list(data.keys())
-    cost_categories = ["Procurement", "Holding", "Stockout", "Fixed Order"]
-    category_colors = ["#4e79a7", "#59a14f", "#e15759", "#edc948"]
+    cost_categories = ["Holding", "Stockout", "Fixed Order"]
+    category_colors = ["#59a14f", "#e15759", "#edc948"]
 
     means_by_cat = {
         cat: [np.mean(data[p][cat]) for p in policies] for cat in cost_categories
     }
 
-    fig, ax = plt.subplots(figsize=(9.0, 5.2), dpi=300)
+    fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=300)
     bottom = np.zeros(len(policies))
 
-    for cat, col in zip(cost_categories, category_colors):
+    hatches = ["///", "...", "\\\\\\"]
+    for cat, col, hatch in zip(cost_categories, category_colors, hatches):
         vals = np.array(means_by_cat[cat])
-        ax.bar(policies, vals, bottom=bottom, label=cat, color=col, alpha=0.9, edgecolor="black", linewidth=0.7)
+        ax.bar(policies, vals, bottom=bottom, label=cat, color=col, hatch=hatch, alpha=0.9, edgecolor="black", linewidth=0.7)
         bottom += vals
 
     ax.set_ylabel("Mean Incurred Cost per Episode (₹)")
-    ax.set_title("Figure 4: Detailed Economic Cost Breakdown per Inventory Policy")
     ax.legend(loc="upper right", framealpha=0.9)
 
     pdf_path = os.path.join(out_dir, "fig4_cost_breakdown.pdf")
     png_path = os.path.join(out_dir, "fig4_cost_breakdown.png")
     fig.savefig(pdf_path, bbox_inches="tight")
     fig.savefig(png_path, bbox_inches="tight")
-    plt.close(fig)
     print(f"Generated Figure 4: {pdf_path}")
 
 
@@ -291,6 +292,7 @@ def plot_trajectory_comparison(out_dir: str, env_cfg=None, seed: int = 12345) ->
     from env import InventoryEnv
     from baselines import FixedReorderPolicy, EOQPolicy, SSPolicy
     from agent import DQNAgent
+    import json
 
     env_cfg = env_cfg or EnvConfig()
     eval_env = InventoryEnv(env_cfg)
@@ -299,6 +301,12 @@ def plot_trajectory_comparison(out_dir: str, env_cfg=None, seed: int = 12345) ->
         ("FixedReorder", FixedReorderPolicy(env_cfg)),
         ("EOQ", EOQPolicy(env_cfg)),
     ]
+    tuned_path = os.path.join(out_dir, "tuned_ss.json")
+    if os.path.exists(tuned_path):
+        with open(tuned_path, "r", encoding="utf-8") as f:
+            tuned = json.load(f)
+        params = tuned.get("retuned", tuned)
+        policies.append(("(s,S)", SSPolicy(env_cfg, s=params["s"], S=params["S"])))
 
     # Check for DQN
     dqn_weights = os.path.join(out_dir, "dqn_seed_42.npz")
@@ -307,7 +315,8 @@ def plot_trajectory_comparison(out_dir: str, env_cfg=None, seed: int = 12345) ->
         agent.load(dqn_weights)
         policies.insert(0, ("DQN", agent))
 
-    fig, ax = plt.subplots(figsize=(9.0, 4.5), dpi=300)
+    fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=300)
+    line_styles = {"DQN": "-", "FixedReorder": "--", "EOQ": ":", "(s,S)": "-."}
 
     for pol_name, pol_obj in policies:
         obs, _ = eval_env.reset(seed=seed)
@@ -326,12 +335,11 @@ def plot_trajectory_comparison(out_dir: str, env_cfg=None, seed: int = 12345) ->
             inv_hist.append(info["inventory_end"])
 
         col = get_color(pol_name)
-        ax.plot(range(len(inv_hist)), inv_hist, label=pol_name, color=col, linewidth=1.8)
+        ax.plot(range(len(inv_hist)), inv_hist, label=pol_name, color=col, linestyle=line_styles.get(pol_name, "-"), linewidth=1.2)
 
     ax.axhline(env_cfg.max_inventory, color="gray", linestyle="--", alpha=0.7, label="Capacity (C=100)")
     ax.set_xlabel("Day of Episode (t)")
     ax.set_ylabel("On-Hand Inventory Level")
-    ax.set_title("Figure 5: 90-Day Inventory Trajectory Comparison (Identical Demand Sequence)")
     ax.legend(loc="upper right", framealpha=0.9)
 
     pdf_path = os.path.join(out_dir, "fig5_inventory_trajectory.pdf")
@@ -366,14 +374,15 @@ def plot_policy_heatmap(out_dir: str, env_cfg=None) -> None:
     agent = DQNAgent(env_cfg=env_cfg, seed=42)
     agent.load(dqn_weights)
 
-    # Grid of on-hand inventory vs pipeline orders sum
-    inv_levels = np.linspace(0, 100, 21)
+    # Grid of inventory position vs pipeline orders sum
+    position_levels = np.linspace(0, 200, 21)
     pipeline_levels = np.linspace(0, 100, 21)
-    grid_actions = np.zeros((len(pipeline_levels), len(inv_levels)))
+    grid_actions = np.zeros((len(pipeline_levels), len(position_levels)))
 
     cap = float(env_cfg.max_inventory)
     for i, p_val in enumerate(pipeline_levels):
-        for j, i_val in enumerate(inv_levels):
+        for j, position in enumerate(position_levels):
+            i_val = max(0.0, position - p_val)
             # Split pipeline equally across lead time orders
             per_pipe = (p_val / env_cfg.lead_time) / cap
             obs = np.array([i_val / cap] + [per_pipe] * env_cfg.lead_time, dtype=np.float32)
@@ -381,20 +390,19 @@ def plot_policy_heatmap(out_dir: str, env_cfg=None) -> None:
             qty = env_cfg.action_values[act_idx]
             grid_actions[i, j] = qty
 
-    fig, ax = plt.subplots(figsize=(7.5, 5.5), dpi=300)
+    fig, ax = plt.subplots(figsize=(3.5, 2.5), dpi=300)
     c = ax.imshow(
         grid_actions,
         origin="lower",
-        extent=[0, 100, 0, 100],
+        extent=[0, 200, 0, 100],
         aspect="auto",
-        cmap="viridis",
+        cmap="Greys",
     )
     cbar = fig.colorbar(c, ax=ax)
     cbar.set_label("Replenishment Order Quantity (Units)")
 
-    ax.set_xlabel("On-Hand Inventory (I)")
+    ax.set_xlabel("Inventory Position (I + pipeline)")
     ax.set_ylabel("Total Pipeline On-Order Inventory (∑ O_i)")
-    ax.set_title("Figure 6: DQN Replenishment Policy Decision Surface")
 
     pdf_path = os.path.join(out_dir, "fig6_policy_heatmap.pdf")
     png_path = os.path.join(out_dir, "fig6_policy_heatmap.png")

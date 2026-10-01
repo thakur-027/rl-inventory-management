@@ -1,4 +1,4 @@
-"""Baseline inventory control policies: Fixed Reorder, EOQ, (s, S) Grid Search, and DP.
+"""Baseline inventory control policies: Fixed Reorder, EOQ, and (s, S) Grid Search.
 
 All policies adhere to a common interface:
     `act(obs: np.ndarray) -> int`  (returns discrete action index)
@@ -9,6 +9,8 @@ and optionally:
 from __future__ import annotations
 
 import itertools
+import math
+import warnings
 from typing import List, Optional, Tuple, Dict, Any
 
 import numpy as np
@@ -60,11 +62,12 @@ class FixedReorderPolicy(BasePolicy):
     def __init__(
         self,
         env_cfg: EnvConfig,
+        base_cfg: Optional[BaselineConfig] = None,
         reorder_point: Optional[int] = None,
         order_action: Optional[int] = None,
     ):
         super().__init__(env_cfg)
-        cfg_base = BaselineConfig()
+        cfg_base = base_cfg if base_cfg is not None else BaselineConfig()
         self.reorder_point = (
             reorder_point if reorder_point is not None else cfg_base.fixed_reorder_point
         )
@@ -149,7 +152,7 @@ class EOQPolicy(BasePolicy):
 
 
 # =====================================================================
-# 3. (s, S) Policy & Grid Search Tuner
+# 3. (s, S) Policy & Adaptive Grid Search Tuner
 # =====================================================================
 
 class SSPolicy(BasePolicy):
@@ -183,24 +186,22 @@ def tune_ss_policy(
 ) -> Tuple[SSPolicy, float, Tuple[int, int]]:
     """Grid-search the optimal (s, S) policy on independent training demand sequences.
 
-    Parameters
-    ----------
-    env_cfg : EnvConfig
-    base_cfg : BaselineConfig
-    tune_episodes : number of evaluation episodes to average over for each candidate pair
-    seed : seed for reproducible tuning sequences
-
-    Returns
-    -------
-    best_policy : SSPolicy
-    best_avg_profit : float
-    best_params : (s, S)
+    Uses an adaptive grid anchored to expected lead-time demand (L · λ) to guarantee
+    sufficient coverage for different lead times (e.g. L=5) and demand rates (λ=25).
+    Issues a warning if the tuned parameters land on a grid boundary.
     """
     from env import InventoryEnv
 
     base_cfg = base_cfg or BaselineConfig()
-    s_vals = base_cfg.ss_s_values
-    S_vals = base_cfg.ss_S_values
+
+    # Adaptive search grid anchored to lead-time demand (L · λ)
+    lt_demand = float(env_cfg.lead_time * env_cfg.demand_mean)
+    s_min = max(0, int(math.floor(0.5 * lt_demand / 5.0) * 5))
+    s_max = max(s_min + 5, int(math.ceil(2.5 * lt_demand / 5.0) * 5))
+    s_vals = list(range(s_min, s_max + 1, 5))
+
+    S_max = int(math.ceil((s_max + env_cfg.max_order_qty + 10) / 5.0) * 5)
+    S_vals = list(range(s_min + 5, S_max + 1, 5))
 
     # Pre-generate tuning seeds to ensure all candidate pairs see identical environments
     eval_seeds = [seed + i for i in range(tune_episodes)]
@@ -235,125 +236,15 @@ def tune_ss_policy(
             best_profit = avg_profit
             best_params = (s, S)
 
+    # Check for boundary landing
+    on_s_edge = (best_params[0] == s_vals[0] or best_params[0] == s_vals[-1])
+    on_S_edge = (best_params[1] == S_vals[0] or best_params[1] == S_vals[-1])
+    if on_s_edge or on_S_edge:
+        warnings.warn(
+            f"Tuned (s, S) {best_params} landed on grid boundary: "
+            f"s in [{s_vals[0]}, {s_vals[-1]}], S in [{S_vals[0]}, {S_vals[-1]}]."
+        )
+
     best_policy = SSPolicy(env_cfg, s=best_params[0], S=best_params[1])
     return best_policy, best_profit, best_params
 
-
-# =====================================================================
-# 4. Discrete Dynamic Programming / Value Iteration Benchmark (Optional)
-# =====================================================================
-
-class DPValueIterationPolicy(BasePolicy):
-    """Dynamic programming value iteration benchmark on inventory position MDP.
-
-    Under stationary demand and constant lead time, the system can be modeled
-    using the inventory position state IP, yielding an optimal control policy.
-    """
-
-    def __init__(self, env_cfg: EnvConfig, base_cfg: Optional[BaselineConfig] = None):
-        super().__init__(env_cfg)
-        self.base_cfg = base_cfg or BaselineConfig()
-        self.policy_table: Dict[int, int] = {}
-        self._solve_value_iteration()
-
-    def _solve_value_iteration(
-        self, gamma: float = 0.95, max_iter: int = 100, tol: float = 1e-3
-    ) -> None:
-        """Solve value iteration over discretised inventory positions."""
-        step = self.base_cfg.dp_inventory_step
-        max_ip = self.env_cfg.max_inventory + self.env_cfg.max_order_qty
-        states = list(range(0, max_ip + 1, step))
-        n_states = len(states)
-        state_to_idx = {s: i for i, s in enumerate(states)}
-
-        V = np.zeros(n_states)
-
-        # Precompute Poisson PMF up to dp_max_demand
-        max_d = self.base_cfg.dp_max_demand
-        lam = self.env_cfg.demand_mean
-        d_vals = np.arange(0, max_d + 1)
-        # Poisson PMF
-        from scipy.stats import poisson
-        pmf = poisson.pmf(d_vals, lam)
-        pmf /= pmf.sum()  # normalize
-
-        # Value iteration loop
-        for _ in range(max_iter):
-            delta = 0.0
-            new_V = np.zeros(n_states)
-            for i, ip in enumerate(states):
-                best_val = -float("inf")
-                for a_idx, qty in enumerate(self.action_values):
-                    # Check capacity
-                    if ip + qty > max_ip:
-                        continue
-
-                    # Expected immediate reward
-                    order_cost = (
-                        (qty * self.env_cfg.unit_cost + self.env_cfg.fixed_order_cost)
-                        if qty > 0
-                        else 0.0
-                    )
-
-                    ev = 0.0
-                    for d, prob in zip(d_vals, pmf):
-                        sales = min(ip, d)
-                        unmet = d - sales
-                        next_ip = max(0, ip + qty - d)
-
-                        rev = sales * self.env_cfg.unit_price
-                        holding = next_ip * self.env_cfg.holding_cost_per_unit
-                        stockout = unmet * self.env_cfg.stockout_cost_per_unit
-                        reward = rev - order_cost - holding - stockout
-
-                        # Snap next_ip to nearest grid state
-                        closest_s = min(states, key=lambda s: abs(s - next_ip))
-                        j = state_to_idx[closest_s]
-                        ev += prob * (reward + gamma * V[j])
-
-                    if ev > best_val:
-                        best_val = ev
-
-                new_V[i] = best_val
-                delta = max(delta, abs(new_V[i] - V[i]))
-
-            V = new_V
-            if delta < tol:
-                break
-
-        # Extract greedy policy
-        for i, ip in enumerate(states):
-            best_val = -float("inf")
-            best_act = 0
-            for a_idx, qty in enumerate(self.action_values):
-                if ip + qty > max_ip:
-                    continue
-                order_cost = (
-                    (qty * self.env_cfg.unit_cost + self.env_cfg.fixed_order_cost)
-                    if qty > 0
-                    else 0.0
-                )
-                ev = 0.0
-                for d, prob in zip(d_vals, pmf):
-                    sales = min(ip, d)
-                    unmet = d - sales
-                    next_ip = max(0, ip + qty - d)
-                    rev = sales * self.env_cfg.unit_price
-                    holding = next_ip * self.env_cfg.holding_cost_per_unit
-                    stockout = unmet * self.env_cfg.stockout_cost_per_unit
-                    reward = rev - order_cost - holding - stockout
-                    closest_s = min(states, key=lambda s: abs(s - next_ip))
-                    j = state_to_idx[closest_s]
-                    ev += prob * (reward + gamma * V[j])
-
-                if ev > best_val:
-                    best_val = ev
-                    best_act = a_idx
-            self.policy_table[ip] = best_act
-
-    def act(self, obs: np.ndarray) -> int:
-        num_orders = self.env_cfg.lead_time
-        inv_position = int(round((obs[0] + np.sum(obs[1 : 1 + num_orders])) * self.capacity))
-        # Find closest grid state in policy table
-        closest_state = min(self.policy_table.keys(), key=lambda s: abs(s - inv_position))
-        return self.policy_table[closest_state]

@@ -85,6 +85,7 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
+    "Training": "Sensitivity",
     "Policy": "FixedReorder",
     "Mean_Profit": 164517.1875,
     "Service_Level": 81.9783,
@@ -92,6 +93,7 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
+    "Training": "Sensitivity",
     "Policy": "EOQ",
     "Mean_Profit": 221347.2125,
     "Service_Level": 92.71175000000001,
@@ -99,6 +101,7 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
+    "Training": "Sensitivity",
     "Policy": "(s,S)[90,100]",
     "Mean_Profit": 240488.35,
     "Service_Level": 98.11055,
@@ -106,6 +109,7 @@
   },
   {
     "Scenario": "LeadTime_3_Base",
+    "Training": "Sensitivity",
     "Policy": "DQN",
     "Mean_Profit": 234276.45,
     "Service_Level": 95.78118,
@@ -127,10 +131,10 @@
   },
   {
     "Scenario": "LeadTime_5",
-    "Policy": "(s,S)[120,130]",
-    "Mean_Profit": 214111.8,
-    "Service_Level": 93.63869999999999,
-    "Avg_Inventory": 14.12455
+    "Policy": "(s,S)[135,140]",
+    "Mean_Profit": 218496.6125,
+    "Service_Level": 95.65450000000001,
+    "Avg_Inventory": 20.94835
   },
   {
     "Scenario": "LeadTime_5",

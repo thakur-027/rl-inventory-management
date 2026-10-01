@@ -26,6 +26,11 @@ import os
 import json
 from typing import Dict, List, Any
 
+# Set BLAS thread limits before importing NumPy (and modules that import it).
+for _key in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS"):
+    os.environ[_key] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 import numpy as np
 
 from config import EnvConfig, AgentConfig, TrainConfig
@@ -139,11 +144,26 @@ def run_sensitivity_study(
     }
 
     sensitivity_results = []
+    completed_configs: Dict[str, str] = {}
 
     for name, e_cfg in variations.items():
         print(f"\n>>> Running Sensitivity Scenario: {name} <<<")
         sub_dir = os.path.join(results_dir, name)
         os.makedirs(sub_dir, exist_ok=True)
+
+        config_key = repr(e_cfg)
+        if config_key in completed_configs:
+            source_dir = completed_configs[config_key]
+            for filename in ("training_log.csv", "evaluation_results.csv", "summary_statistics.csv", "hypothesis_tests.json", "tuned_ss.json"):
+                source = os.path.join(source_dir, filename)
+                target = os.path.join(sub_dir, filename)
+                if os.path.exists(source) and not os.path.exists(target):
+                    import shutil
+                    shutil.copy2(source, target)
+            print(f"Reusing completed run from {source_dir} for identical configuration.")
+            _append_summary_rows(sub_dir, name, sensitivity_results)
+            continue
+        completed_configs[config_key] = sub_dir
 
         t_cfg = TrainConfig(episodes=episodes, results_dir=sub_dir)
         a_cfg = AgentConfig()
@@ -219,11 +239,13 @@ def run_nonstationary_study(
         "Upward_Trend": EnvConfig(
             demand_type="trend",
             trend_slope=0.15,          # λ goes from 20→33.5 over 90 days
+            include_demand_avg=True,
         ),
         "Regime_Shift_Day45": EnvConfig(
             demand_type="regime",
             regime_lam2=30.0,
             regime_shift_day=45,
+            include_demand_avg=True,
         ),
     }
 
@@ -287,6 +309,7 @@ def run_nonstationary_study(
         eval_csv = evaluate_all(zs_env_for_eval, zs_t_cfg,
                                 agent_cfg=zs_agent_cfg,
                                 seeds=seeds, eval_episodes=eval_episodes,
+                    ss_tune_env_cfg=stat_cfg,
                                 results_dir=zs_dir)
         analyze_results(eval_csv, zs_dir)
         _collect_summary(zs_dir, scenario_name, "ZeroShot", nonstat_results)
@@ -356,6 +379,15 @@ def _collect_summary(
                 "Service_Level": float(row["service_level_mean"]),
                 "Avg_Inventory": float(row["avg_inventory_mean"]),
             })
+
+
+def _append_summary_rows(
+    sub_dir: str,
+    scenario_name: str,
+    out: List[Dict[str, Any]],
+) -> None:
+    """Append rows from an already-completed sensitivity run."""
+    _collect_summary(sub_dir, scenario_name, "Sensitivity", out)
 
 
 if __name__ == "__main__":

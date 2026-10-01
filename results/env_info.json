@@ -3,7 +3,7 @@
   "system": "Windows",
   "release": "10",
   "architecture": "64bit",
-  "processor": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+  "processor": "Intel(R) Core(TM) Ultra 5 225H",
   "cpu_count": 14,
   "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
   "numpy_version": "2.4.6",
@@ -12,9 +12,9 @@
     "OMP_NUM_THREADS": "1",
     "MKL_NUM_THREADS": "1"
   },
-  "timestamp": "2026-09-30 16:35:13 UTC",
+  "timestamp": "2026-10-01 01:21:44 UTC",
   "scipy_version": "1.17.1",
   "matplotlib_version": "3.11.2",
   "total_ram_gb": 15.52,
-  "mean_training_time_sec": 6.779289920000883
+  "mean_training_time_sec": 6.971566380001605
 }

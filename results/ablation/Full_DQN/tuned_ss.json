@@ -1,0 +1,15 @@
+{
+  "stationary_tuned": {
+    "s": 90,
+    "S": 100
+  },
+  "retuned": {
+    "s": 90,
+    "S": 100
+  },
+  "tuning_demand_mean": 20.0,
+  "tuning_lead_time": 3,
+  "tuning_demand_type": "stationary",
+  "training_profit": 240482.45,
+  "retuned_training_profit": 240482.45
+}

@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import argparse
 import csv
+import dataclasses
+import json
 import os
 import sys
 import time
+from dataclasses import asdict
 from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
@@ -35,8 +38,10 @@ from baselines import (
     EOQPolicy,
     SSPolicy,
     tune_ss_policy,
-    DPValueIterationPolicy,
 )
+
+
+_SS_TUNING_CACHE: Dict[str, Tuple[float, Tuple[int, int]]] = {}
 
 
 class DQNEvalWrapper(BasePolicy):
@@ -62,18 +67,15 @@ def run_episode(
     tot_hold = 0.0
     tot_stockout = 0.0
     tot_order_cost = 0.0
+    tot_discarded = 0
     order_count = 0
     inv_levels: List[float] = []
     tot_unmet = 0
     tot_demand = 0
 
     done = False
-    step_times: List[float] = []
-
     while not done:
-        t0 = time.perf_counter()
         action = policy.act(obs)
-        step_times.append(time.perf_counter() - t0)
 
         obs, reward, term, trunc, step_info = env.step(action)
         done = term or trunc
@@ -84,6 +86,7 @@ def run_episode(
         tot_hold += step_info["holding_cost"]
         tot_stockout += step_info["stockout_cost"]
         tot_order_cost += step_info["fixed_order_cost"]
+        tot_discarded += step_info.get("discarded_stock", 0)
         if step_info["order_placed"]:
             order_count += 1
         inv_levels.append(step_info["inventory_end"])
@@ -92,8 +95,6 @@ def run_episode(
 
     service_level = 1.0 - (tot_unmet / tot_demand) if tot_demand > 0 else 1.0
     avg_inv = float(np.mean(inv_levels)) if inv_levels else 0.0
-    mean_decision_us = float(np.mean(step_times) * 1e6) if step_times else 0.0
-
     return {
         "profit": tot_reward,
         "revenue": tot_rev,
@@ -101,12 +102,14 @@ def run_episode(
         "holding": tot_hold,
         "stockout": tot_stockout,
         "ordering": tot_order_cost,
+        "discarded_stock": tot_discarded,
         "number_of_orders": order_count,
         "average_inventory": avg_inv,
         "unmet": tot_unmet,
         "demand": tot_demand,
         "service_level": service_level,
-        "decision_time_us": mean_decision_us,
+        # Runtime measurements are intentionally excluded from the reproducibility CSV.
+        "decision_time_us": 0.0,
     }
 
 
@@ -117,7 +120,7 @@ def evaluate_all(
     base_cfg: Optional[BaselineConfig] = None,
     seeds: Optional[List[int]] = None,
     eval_episodes: int = 200,
-    include_dp: bool = False,
+    ss_tune_env_cfg: Optional[EnvConfig] = None,
     results_dir: str = "results",
 ) -> str:
     """Run full evaluation across seeds and policies with Common Random Numbers."""
@@ -138,13 +141,37 @@ def evaluate_all(
 
     # 1. Pre-tune (s, S) policy on separate training demand sequences
     print("Tuning (s, S) policy on independent training demand sequences...")
-    tuned_ss_policy, ss_train_profit, best_ss_params = tune_ss_policy(
-        env_cfg, base_cfg, tune_episodes=base_cfg.ss_tune_episodes, seed=500_000
-    )
+    ss_cfg = ss_tune_env_cfg or env_cfg
+    def get_tuning(cfg: EnvConfig) -> Tuple[float, Tuple[int, int]]:
+        cache_key = repr(asdict(cfg))
+        if cache_key not in _SS_TUNING_CACHE:
+            _, train_profit, params = tune_ss_policy(
+                cfg, base_cfg, tune_episodes=base_cfg.ss_tune_episodes, seed=500_000
+            )
+            _SS_TUNING_CACHE[cache_key] = (train_profit, params)
+        return _SS_TUNING_CACHE[cache_key]
+
+    ss_train_profit, best_ss_params = get_tuning(ss_cfg)
+    retuned_profit, retuned_params = get_tuning(env_cfg)
+    if ss_cfg is env_cfg:
+        retuned_profit, retuned_params = ss_train_profit, best_ss_params
+
+    tuned_ss_policy = SSPolicy(env_cfg, s=best_ss_params[0], S=best_ss_params[1])
+    retuned_ss_policy = SSPolicy(env_cfg, s=retuned_params[0], S=retuned_params[1])
+    with open(os.path.join(results_dir, "tuned_ss.json"), "w", encoding="utf-8") as f:
+        json.dump({
+            "stationary_tuned": {"s": best_ss_params[0], "S": best_ss_params[1]},
+            "retuned": {"s": retuned_params[0], "S": retuned_params[1]},
+            "tuning_demand_mean": ss_cfg.demand_mean,
+            "tuning_lead_time": ss_cfg.lead_time,
+            "tuning_demand_type": ss_cfg.demand_type,
+            "training_profit": ss_train_profit,
+            "retuned_training_profit": retuned_profit,
+        }, f, indent=2)
     print(f"Optimal (s, S) found: s={best_ss_params[0]}, S={best_ss_params[1]} (Tuning Avg Profit: INR {ss_train_profit:.2f})")
 
     # 2. Build non-learning baselines
-    fixed_policy = FixedReorderPolicy(env_cfg)
+    fixed_policy = FixedReorderPolicy(env_cfg, base_cfg=base_cfg)
     eoq_policy = EOQPolicy(env_cfg, service_z=base_cfg.eoq_service_z)
 
     with open(csv_path, "w", newline="", encoding="utf-8") as f:
@@ -159,6 +186,7 @@ def evaluate_all(
             "holding",
             "stockout",
             "ordering",
+            "discarded_stock",
             "number_of_orders",
             "average_inventory",
             "unmet",
@@ -174,6 +202,10 @@ def evaluate_all(
             ("EOQ", eoq_policy),
             (f"(s,S)[{best_ss_params[0]},{best_ss_params[1]}]", tuned_ss_policy),
         ]
+        if ss_tune_env_cfg is not None and ss_tune_env_cfg != env_cfg:
+            baselines.append(
+                (f"(s,S)-Retuned[{retuned_params[0]},{retuned_params[1]}]", retuned_ss_policy)
+            )
         
         for pol_name, pol_obj in baselines:
             for ep_idx, ep_seed in enumerate(common_seeds, start=1):
@@ -188,6 +220,7 @@ def evaluate_all(
                     f"{res['holding']:.2f}",
                     f"{res['stockout']:.2f}",
                     f"{res['ordering']:.2f}",
+                    res["discarded_stock"],
                     res["number_of_orders"],
                     f"{res['average_inventory']:.2f}",
                     res["unmet"],
@@ -214,7 +247,11 @@ def evaluate_all(
             # Check for trained Double DQN weights
             doubledqn_path = os.path.join(results_dir, f"doubledqn_seed_{seed}.npz")
             if os.path.exists(doubledqn_path):
-                ddqn_agent = DQNAgent(env_cfg=env_cfg, agent_cfg=AgentConfig(double_dqn=True), seed=seed)
+                ddqn_agent = DQNAgent(
+                    env_cfg=env_cfg,
+                    agent_cfg=dataclasses.replace(agent_cfg, double_dqn=True),
+                    seed=seed,
+                )
                 ddqn_agent.load(doubledqn_path)
                 policies_to_eval.append(("DoubleDQN", DQNEvalWrapper(ddqn_agent)))
 
@@ -235,6 +272,7 @@ def evaluate_all(
                         f"{res['holding']:.2f}",
                         f"{res['stockout']:.2f}",
                         f"{res['ordering']:.2f}",
+                        res["discarded_stock"],
                         res["number_of_orders"],
                         f"{res['average_inventory']:.2f}",
                         res["unmet"],
@@ -267,13 +305,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Evaluate Inventory Policies with Common Random Numbers")
     parser.add_argument("--eval-episodes", type=int, default=200, help="Number of common evaluation episodes")
     parser.add_argument("--seeds", type=int, nargs="+", default=None, help="Seeds to evaluate")
-    parser.add_argument("--include-dp", action="store_true", help="Include DP Value Iteration baseline")
     parser.add_argument("--results-dir", type=str, default="results", help="Directory containing weights / outputs")
     args = parser.parse_args()
 
     evaluate_all(
         eval_episodes=args.eval_episodes,
         seeds=args.seeds,
-        include_dp=args.include_dp,
         results_dir=args.results_dir,
     )

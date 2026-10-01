@@ -1,3 +1,4 @@
+# Superseded legacy prototype. Use the top-level train.py, evaluate.py, and reproduce.py pipeline.
 # Reinforcement Learning for Inventory Restocking Optimization
 # Pure NumPy implementation (no TensorFlow dependency)
 

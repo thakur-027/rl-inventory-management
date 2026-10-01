@@ -50,7 +50,15 @@
   {
     "Scenario": "Weekly_Seasonal",
     "Training": "ZeroShot",
-    "Policy": "(s,S)[100,105]",
+    "Policy": "(s,S)[90,100]",
+    "Mean_Profit": 240166.2375,
+    "Service_Level": 97.50299999999999,
+    "Avg_Inventory": 19.897800000000004
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)-Retuned[100,105]",
     "Mean_Profit": 241312.0,
     "Service_Level": 98.21015,
     "Avg_Inventory": 24.2867
@@ -82,10 +90,18 @@
   {
     "Scenario": "Upward_Trend",
     "Training": "ZeroShot",
-    "Policy": "(s,S)[120,135]",
-    "Mean_Profit": 318838.975,
-    "Service_Level": 97.81849999999999,
-    "Avg_Inventory": 27.32765
+    "Policy": "(s,S)[90,100]",
+    "Mean_Profit": 264045.6125,
+    "Service_Level": 86.85470000000001,
+    "Avg_Inventory": 6.401800000000001
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)-Retuned[125,135]",
+    "Mean_Profit": 318786.5125,
+    "Service_Level": 97.84305,
+    "Avg_Inventory": 27.634249999999998
   },
   {
     "Scenario": "Upward_Trend",
@@ -114,7 +130,15 @@
   {
     "Scenario": "Regime_Shift_Day45",
     "Training": "ZeroShot",
-    "Policy": "(s,S)[120,135]",
+    "Policy": "(s,S)[90,100]",
+    "Mean_Profit": 251432.925,
+    "Service_Level": 87.89410000000002,
+    "Avg_Inventory": 10.8904
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)-Retuned[120,135]",
     "Mean_Profit": 296786.45,
     "Service_Level": 98.03829999999999,
     "Avg_Inventory": 32.98905
@@ -178,18 +202,18 @@
   {
     "Scenario": "Upward_Trend",
     "Training": "Specialised",
-    "Policy": "(s,S)[120,135]",
-    "Mean_Profit": 318838.975,
-    "Service_Level": 97.81849999999999,
-    "Avg_Inventory": 27.32765
+    "Policy": "(s,S)[125,135]",
+    "Mean_Profit": 318786.5125,
+    "Service_Level": 97.84305,
+    "Avg_Inventory": 27.634249999999998
   },
   {
     "Scenario": "Upward_Trend",
     "Training": "Specialised",
     "Policy": "DQN",
-    "Mean_Profit": 299366.4825,
-    "Service_Level": 93.50055,
-    "Avg_Inventory": 14.454859999999998
+    "Mean_Profit": 311253.56,
+    "Service_Level": 96.8839,
+    "Avg_Inventory": 19.496370000000002
   },
   {
     "Scenario": "Regime_Shift_Day45",
@@ -219,8 +243,8 @@
     "Scenario": "Regime_Shift_Day45",
     "Training": "Specialised",
     "Policy": "DQN",
-    "Mean_Profit": 278576.745,
-    "Service_Level": 93.35519000000001,
-    "Avg_Inventory": 14.7262
+    "Mean_Profit": 281108.735,
+    "Service_Level": 94.91553,
+    "Avg_Inventory": 16.37519
   }
 ]
