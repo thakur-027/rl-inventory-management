@@ -62,6 +62,3 @@ The inventory-only ablation is reported as a failed-to-learn variant: its polici
 
 `train.py` contains the multi-seed learner, `evaluate.py` runs paired policy evaluation, `analyze.py` produces tables and tests, `plots.py` creates publication figures, and `experiments.py` runs ablations, sensitivities, and non-stationary transfer tests. `index.html` is an illustrative browser demo, not a source of paper results. Files in `legacy/` are superseded prototypes.
 
-## License
-
-MIT. See [LICENSE](LICENSE).
