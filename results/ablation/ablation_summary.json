@@ -1,0 +1,37 @@
+[
+  {
+    "Variant": "Full_DQN",
+    "Mean_Profit": 234276.45,
+    "Std_Profit": 4955.162356816581,
+    "Service_Level": 95.78118,
+    "Avg_Inventory": 11.02107
+  },
+  {
+    "Variant": "No_Target_Net",
+    "Mean_Profit": 236896.805,
+    "Std_Profit": 6476.326277469055,
+    "Service_Level": 97.67183000000001,
+    "Avg_Inventory": 25.753739999999997
+  },
+  {
+    "Variant": "Small_Replay_Buffer",
+    "Mean_Profit": 235692.905,
+    "Std_Profit": 5143.725577590897,
+    "Service_Level": 96.44926000000001,
+    "Avg_Inventory": 14.331330000000003
+  },
+  {
+    "Variant": "Double_DQN",
+    "Mean_Profit": 235179.0425,
+    "Std_Profit": 5415.245735543806,
+    "Service_Level": 96.34613000000002,
+    "Avg_Inventory": 16.28371
+  },
+  {
+    "Variant": "Inv_Only_State",
+    "Mean_Profit": -3492.55,
+    "Std_Profit": 4561.601310678953,
+    "Service_Level": 39.67019,
+    "Avg_Inventory": 0.13573000000000002
+  }
+]

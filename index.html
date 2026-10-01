@@ -1027,8 +1027,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h1 class="main-title">Reinforcement Learning for Inventory Management</h1>
-                        <p class="subtitle">Deep Q-Network (DQN) Optimization System</p>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h1 class="main-title">Reinforcement Learning for Inventory Management</h1>
+                            <span style="background: #e0e7ff; color: #3730a3; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid #c7d2fe;">Illustrative Demo</span>
+                        </div>
+                        <p class="subtitle">Interactive Browser Demonstration &bull; <span style="font-size: 14px; color: #4b5563;">Official paper benchmarks generated via <code>python reproduce.py</code></span></p>
                     </div>
                 </div>
                 <div class="header-buttons">
@@ -1064,15 +1067,15 @@
                 <div class="explanation-grid">
                     <div class="explanation-card">
                         <p class="explanation-label">🎯 The Problem</p>
-                        <p class="explanation-text">Balance inventory to minimize holding costs and stockouts while maximizing profit from sales.</p>
+                        <p class="explanation-text">Balance inventory under 3-day lead times to minimize holding (₹2.5/day), stockout (₹100/unit), and order costs (₹50) while fulfilling demand.</p>
                     </div>
                     <div class="explanation-card">
                         <p class="explanation-label">🧠 The Solution</p>
-                        <p class="explanation-text">DQN agent learns optimal reorder quantities by trial and error through 200 episodes of simulation.</p>
+                        <p class="explanation-text">Pipeline-aware DQN agent observes on-hand stock and orders in transit, learning optimal replenishment quantities.</p>
                     </div>
                     <div class="explanation-card">
-                        <p class="explanation-label">📊 The Result</p>
-                        <p class="explanation-text">AI-driven policy outperforms traditional fixed reorder point methods by 5-15%.</p>
+                        <p class="explanation-label">📊 Scientific Validation</p>
+                        <p class="explanation-text">Compared against (s, S) grid-search, EOQ, and Fixed Reorder using Common Random Numbers with paired t-tests.</p>
                     </div>
                 </div>
             </div>
@@ -1084,7 +1087,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                         </svg>
-                        <p>Max Inventory</p>
+                        <p>Max Inventory (C)</p>
                     </div>
                     <p class="param-value">100</p>
                     <p class="param-unit">units capacity</p>
@@ -1096,10 +1099,10 @@
                             <circle cx="20" cy="21" r="1"/>
                             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
                         </svg>
-                        <p>Avg Demand</p>
+                        <p>Mean Demand (λ)</p>
                     </div>
                     <p class="param-value">20</p>
-                    <p class="param-unit">units per day</p>
+                    <p class="param-unit">units / day (Poisson)</p>
                 </div>
                 <div class="param-card param-purple">
                     <div class="param-header">
@@ -1107,10 +1110,10 @@
                             <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
                             <polyline points="17 6 23 6 23 12"/>
                         </svg>
-                        <p>Lead Time</p>
+                        <p>Lead Time (L)</p>
                     </div>
                     <p class="param-value">3</p>
-                    <p class="param-unit">days to deliver</p>
+                    <p class="param-unit">days delivery delay</p>
                 </div>
                 <div class="param-card param-orange">
                     <div class="param-header">
@@ -1118,10 +1121,10 @@
                             <line x1="12" y1="1" x2="12" y2="23"/>
                             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                         </svg>
-                        <p>Unit Price</p>
+                        <p>Unit Economics</p>
                     </div>
-                    <p class="param-value">₹166</p>
-                    <p class="param-unit">revenue per unit</p>
+                    <p class="param-value">₹400 / ₹250</p>
+                    <p class="param-unit">Selling Price / Unit Cost</p>
                 </div>
             </div>
         </div>
@@ -1205,19 +1208,27 @@
                                 <div class="arch-details">
                                     <div class="detail-row">
                                         <span>State Space:</span>
-                                        <span>Inventory Level (0-100)</span>
+                                        <span>Pipeline State [I, O₁, O₂, O₃] (Normalized)</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Action Space:</span>
-                                        <span>6 discrete actions</span>
+                                        <span>{0, 10, 20, 30, 40, 50} units</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Procurement Cost:</span>
+                                        <span>₹250 per unit ordered</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Holding Cost:</span>
-                                        <span>₹8.30 per unit/day</span>
+                                        <span>₹2.50 per unit/day (end-of-day)</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Stockout Cost:</span>
-                                        <span>₹83 per unit</span>
+                                        <span>₹100 per unmet unit</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Fixed Order Cost:</span>
+                                        <span>₹50 whenever order placed</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Episode Length:</span>
@@ -1236,23 +1247,27 @@
                                 <div class="arch-details">
                                     <div class="detail-row">
                                         <span>Algorithm:</span>
-                                        <span>Deep Q-Network (DQN)</span>
+                                        <span>DQN with Target Sync &amp; Replay</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span>Hidden Layers:</span>
+                                        <span>[32, 32] MLP</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Discount Factor (γ):</span>
                                         <span>0.95</span>
                                     </div>
                                     <div class="detail-row">
-                                        <span>Epsilon Decay:</span>
-                                        <span>0.995</span>
+                                        <span>Exploration (ε):</span>
+                                        <span>1.0 → 0.01 (Linear decay)</span>
                                     </div>
                                     <div class="detail-row">
                                         <span>Batch Size:</span>
-                                        <span>32</span>
+                                        <span>64</span>
                                     </div>
                                     <div class="detail-row">
-                                        <span>Memory Size:</span>
-                                        <span>1000</span>
+                                        <span>Memory Capacity:</span>
+                                        <span>20,000 transitions</span>
                                     </div>
                                 </div>
                             </div>
@@ -1260,24 +1275,34 @@
                     </div>
 
                     <div class="section-space">
-                        <h2 class="section-title">Profit Function</h2>
+                        <h2 class="section-title">Comprehensive Reward Function</h2>
                         <div class="reward-card">
-                            <p class="reward-formula">Profit = Revenue - Holding Cost - Stockout Cost</p>
+                            <p class="reward-formula">r_t = Revenue - Procurement - Holding - Stockout - Fixed Order Cost</p>
                             <div class="reward-grid">
                                 <div class="reward-item">
-                                    <p class="reward-label">Revenue</p>
-                                    <p class="reward-value">₹166</p>
-                                    <p class="reward-unit">per unit sold</p>
+                                    <p class="reward-label">Selling Price</p>
+                                    <p class="reward-value">₹400</p>
+                                    <p class="reward-unit">revenue per unit sold</p>
+                                </div>
+                                <div class="reward-item">
+                                    <p class="reward-label">Procurement</p>
+                                    <p class="reward-value">₹250</p>
+                                    <p class="reward-unit">cost per unit ordered</p>
                                 </div>
                                 <div class="reward-item">
                                     <p class="reward-label">Holding Cost</p>
-                                    <p class="reward-value">₹8.30</p>
-                                    <p class="reward-unit">per unit per day</p>
+                                    <p class="reward-value">₹2.50</p>
+                                    <p class="reward-unit">per unit held end-of-day</p>
                                 </div>
                                 <div class="reward-item">
-                                    <p class="reward-label">Stockout Cost</p>
-                                    <p class="reward-value">₹83</p>
-                                    <p class="reward-unit">per unmet demand</p>
+                                    <p class="reward-label">Stockout Penalty</p>
+                                    <p class="reward-value">₹100</p>
+                                    <p class="reward-unit">per unmet demand unit</p>
+                                </div>
+                                <div class="reward-item">
+                                    <p class="reward-label">Fixed Order Cost</p>
+                                    <p class="reward-value">₹50</p>
+                                    <p class="reward-unit">per replenishment order</p>
                                 </div>
                             </div>
                         </div>
@@ -1382,19 +1407,18 @@
     </div>
 
     <script>
-        // USD to INR conversion rate
-        const USD_TO_INR = 83;
-
-        // Environment Configuration
+        // Environment Configuration (Matching Central config.py)
         const ENV_CONFIG = {
             maxInventory: 100,
             maxOrderQty: 50,
             nActions: 6,
             leadTime: 3,
-            holdingCost: 0.1 * USD_TO_INR,      // ₹8.30
-            stockoutCost: 1.0 * USD_TO_INR,      // ₹83
-            unitPrice: 2.0 * USD_TO_INR,         // ₹166
-            demandMean: 20,
+            unitPrice: 400.0,            // ₹400 per unit sold
+            unitCost: 250.0,             // ₹250 per unit ordered
+            holdingCost: 2.5,            // ₹2.50 per unit/day (end-of-day)
+            stockoutCost: 100.0,         // ₹100 per unmet demand unit
+            fixedOrderCost: 50.0,        // ₹50 per order placed
+            demandMean: 20,              // Poisson mean λ = 20
             episodeDays: 90
         };
 
@@ -1405,8 +1429,8 @@
             epsilonMin: 0.01,
             epsilonDecay: 0.995,
             learningRate: 0.001,
-            batchSize: 32,
-            memorySize: 1000
+            batchSize: 64,
+            memorySize: 20000
         };
 
         // Global State
@@ -1422,9 +1446,11 @@
                 this.maxOrderQty = ENV_CONFIG.maxOrderQty;
                 this.nActions = ENV_CONFIG.nActions;
                 this.leadTime = ENV_CONFIG.leadTime;
+                this.unitPrice = ENV_CONFIG.unitPrice;
+                this.unitCost = ENV_CONFIG.unitCost;
                 this.holdingCost = ENV_CONFIG.holdingCost;
                 this.stockoutCost = ENV_CONFIG.stockoutCost;
-                this.unitPrice = ENV_CONFIG.unitPrice;
+                this.fixedOrderCost = ENV_CONFIG.fixedOrderCost;
                 this.demandMean = ENV_CONFIG.demandMean;
                 
                 this.inventory = 0;
@@ -1437,7 +1463,8 @@
             }
 
             reset() {
-                this.inventory = Math.floor(Math.random() * 20) + 10;
+                // Starting inventory ~ U[20, 40]
+                this.inventory = Math.floor(Math.random() * 21) + 20;
                 this.pendingOrders = new Array(this.leadTime).fill(0);
                 this.day = 0;
                 return this.inventory;
@@ -1456,18 +1483,33 @@
 
             step(action) {
                 this.day++;
+                // 1. Pending order arrives (start of day)
                 const arrivedOrder = this.pendingOrders.shift();
                 this.inventory = Math.min(this.inventory + arrivedOrder, this.maxInventory);
+
+                // 2. Place new order
                 const orderQuantity = this.getActionValue(action);
                 this.pendingOrders.push(orderQuantity);
+                const procurementCost = orderQuantity * this.unitCost;
+                const orderCost = orderQuantity > 0 ? this.fixedOrderCost : 0.0;
+
+                // 3. Realize Poisson demand
                 const demand = this.poissonRandom(this.demandMean);
+
+                // 4. Fulfillment & sales
                 const sales = Math.min(this.inventory, demand);
                 const unmetDemand = demand - sales;
+
+                // 5. Update inventory (end of day)
                 this.inventory -= sales;
+
+                // 6. Cost calculations
                 const revenue = sales * this.unitPrice;
                 const holdingCostTotal = this.inventory * this.holdingCost;
                 const stockoutCostTotal = unmetDemand * this.stockoutCost;
-                const reward = revenue - holdingCostTotal - stockoutCostTotal;
+
+                // 7. Full net economic profit
+                const reward = revenue - procurementCost - holdingCostTotal - stockoutCostTotal - orderCost;
                 const done = this.day >= ENV_CONFIG.episodeDays;
 
                 return {
@@ -1557,9 +1599,9 @@
             }
         }
 
-        // Fixed Policy
+        // Fixed Reorder Policy (Matching Paper: Order 30 when I < 30)
         function fixedReorderPolicy(inventory) {
-            return inventory < 20 ? 4 : 0;
+            return inventory < 30 ? 3 : 0;
         }
 
         // Run Evaluation
@@ -1567,11 +1609,13 @@
             const env = new InventoryEnv();
             const totalProfits = [];
             const totalUnmetDemands = [];
+            const totalDemands = [];
 
             for (let e = 0; e < episodes; e++) {
                 let state = env.reset();
                 let episodeProfit = 0;
                 let episodeUnmetDemand = 0;
+                let episodeDemand = 0;
                 let done = false;
 
                 while (!done) {
@@ -1580,19 +1624,25 @@
                     state = result.nextState;
                     episodeProfit += result.reward;
                     episodeUnmetDemand += result.unmetDemand;
+                    episodeDemand += result.demand;
                     done = result.done;
                 }
 
                 totalProfits.push(episodeProfit);
                 totalUnmetDemands.push(episodeUnmetDemand);
+                totalDemands.push(episodeDemand);
             }
 
             const avgProfit = totalProfits.reduce((a, b) => a + b, 0) / totalProfits.length;
             const avgUnmetDemand = totalUnmetDemands.reduce((a, b) => a + b, 0) / totalUnmetDemands.length;
+            const sumUnmet = totalUnmetDemands.reduce((a, b) => a + b, 0);
+            const sumDemand = totalDemands.reduce((a, b) => a + b, 0);
+            const serviceLevel = sumDemand > 0 ? (1.0 - sumUnmet / sumDemand) * 100.0 : 100.0;
 
             return {
                 avgProfit: avgProfit,
-                avgUnmetDemand: avgUnmetDemand
+                avgUnmetDemand: avgUnmetDemand,
+                serviceLevel: serviceLevel
             };
         }
 
@@ -1721,10 +1771,11 @@
         // Display results
         function displayResults(dqnResults, fixedResults) {
             const resultsContainer = document.getElementById('resultsContainer');
-            const improvement = ((dqnResults.avgProfit - fixedResults.avgProfit) / fixedResults.avgProfit * 100);
+            const improvement = ((dqnResults.avgProfit - fixedResults.avgProfit) / Math.abs(fixedResults.avgProfit) * 100);
             const additionalProfit = dqnResults.avgProfit - fixedResults.avgProfit;
             const maxProfit = Math.max(dqnResults.avgProfit, fixedResults.avgProfit);
-            const serviceLevel = (100 - (dqnResults.avgUnmetDemand / (ENV_CONFIG.demandMean * ENV_CONFIG.episodeDays) * 100)).toFixed(1);
+            const dqnServiceLevel = dqnResults.serviceLevel.toFixed(1);
+            const fixedServiceLevel = fixedResults.serviceLevel.toFixed(1);
             
             resultsContainer.innerHTML = `
                 <div class="comparison-grid">
@@ -1744,6 +1795,10 @@
                                 <p>Unmet Demand</p>
                                 <p class="comparison-sub">${dqnResults.avgUnmetDemand.toFixed(1)} units</p>
                             </div>
+                            <div class="comparison-metric">
+                                <p>Service Level (1 - Unmet/Demand)</p>
+                                <p class="comparison-value" style="font-size: 20px; color: #1e3a8a;">${dqnServiceLevel}%</p>
+                            </div>
                         </div>
                     </div>
 
@@ -1754,7 +1809,7 @@
                                 <circle cx="12" cy="12" r="6"/>
                                 <circle cx="12" cy="12" r="2"/>
                             </svg>
-                            <h4>Fixed Policy</h4>
+                            <h4>Fixed Policy (I &lt; 30 &rarr; 30)</h4>
                         </div>
                         <div class="comparison-details">
                             <div class="comparison-metric">
@@ -1764,6 +1819,10 @@
                             <div class="comparison-metric">
                                 <p>Unmet Demand</p>
                                 <p class="comparison-sub">${fixedResults.avgUnmetDemand.toFixed(1)} units</p>
+                            </div>
+                            <div class="comparison-metric">
+                                <p>Service Level (1 - Unmet/Demand)</p>
+                                <p class="comparison-value" style="font-size: 20px; color: #991b1b;">${fixedServiceLevel}%</p>
                             </div>
                         </div>
                     </div>
@@ -1846,8 +1905,8 @@
                             Better inventory positioning reduced stockouts and improved customer satisfaction metrics.
                         </p>
                         <div class="insight-stat">
-                            <p class="insight-stat-label">Service Level</p>
-                            <p class="insight-stat-value">${serviceLevel}%</p>
+                            <p class="insight-stat-label">DQN Service Level</p>
+                            <p class="insight-stat-value">${dqnServiceLevel}%</p>
                         </div>
                     </div>
 

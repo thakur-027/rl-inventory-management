@@ -1,0 +1,35 @@
+{
+  "EOQ": {
+    "mean_profit_difference": -56830.025,
+    "t_statistic": -71.62629642591784,
+    "p_value_paired_t_adj": 4.921909076389139e-144,
+    "wilcoxon_statistic": 0.0,
+    "p_value_wilcoxon_adj": 4.308378557336891e-34,
+    "cohen_d": -5.064743991404428,
+    "dqn_win_rate_percent": 0.0,
+    "statistically_significant_05": true,
+    "p_value_tost_1pct": 1.0
+  },
+  "(s,S)[90,100]": {
+    "mean_profit_difference": -75971.1625,
+    "t_statistic": -97.02436614816641,
+    "p_value_paired_t_adj": 4.7448966482403836e-169,
+    "wilcoxon_statistic": 0.0,
+    "p_value_wilcoxon_adj": 4.308378557336891e-34,
+    "cohen_d": -6.860658724369497,
+    "dqn_win_rate_percent": 0.0,
+    "statistically_significant_05": true,
+    "p_value_tost_1pct": 1.0
+  },
+  "DoubleDQN": {
+    "mean_profit_difference": -70661.855,
+    "t_statistic": -91.77969657132935,
+    "p_value_paired_t_adj": 1.5788138922451968e-164,
+    "wilcoxon_statistic": 0.0,
+    "p_value_wilcoxon_adj": 4.308378557336891e-34,
+    "cohen_d": -6.48980458208307,
+    "dqn_win_rate_percent": 0.0,
+    "statistically_significant_05": true,
+    "p_value_tost_1pct": 1.0
+  }
+}

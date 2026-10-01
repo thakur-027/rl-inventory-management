@@ -1,0 +1,226 @@
+[
+  {
+    "Scenario": "Stationary_Base",
+    "Training": "Stationary_Train",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 164517.1875,
+    "Service_Level": 81.9783,
+    "Avg_Inventory": 26.4712
+  },
+  {
+    "Scenario": "Stationary_Base",
+    "Training": "Stationary_Train",
+    "Policy": "EOQ",
+    "Mean_Profit": 221347.2125,
+    "Service_Level": 92.71175000000001,
+    "Avg_Inventory": 12.914549999999998
+  },
+  {
+    "Scenario": "Stationary_Base",
+    "Training": "Stationary_Train",
+    "Policy": "(s,S)[90,100]",
+    "Mean_Profit": 240488.35,
+    "Service_Level": 98.11055,
+    "Avg_Inventory": 19.762549999999997
+  },
+  {
+    "Scenario": "Stationary_Base",
+    "Training": "Stationary_Train",
+    "Policy": "DQN",
+    "Mean_Profit": 234276.45,
+    "Service_Level": 95.78118,
+    "Avg_Inventory": 11.02107
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "ZeroShot",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 174744.1625,
+    "Service_Level": 83.26389999999999,
+    "Avg_Inventory": 26.62155
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "ZeroShot",
+    "Policy": "EOQ",
+    "Mean_Profit": 212847.5625,
+    "Service_Level": 90.60619999999999,
+    "Avg_Inventory": 14.47565
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)[100,105]",
+    "Mean_Profit": 241312.0,
+    "Service_Level": 98.21015,
+    "Avg_Inventory": 24.2867
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "ZeroShot",
+    "Policy": "DQN",
+    "Mean_Profit": 230033.9025,
+    "Service_Level": 94.39384,
+    "Avg_Inventory": 12.361680000000002
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "ZeroShot",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 255848.1375,
+    "Service_Level": 86.38349999999998,
+    "Avg_Inventory": 15.565999999999999
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "ZeroShot",
+    "Policy": "EOQ",
+    "Mean_Profit": 216798.625,
+    "Service_Level": 78.4302,
+    "Avg_Inventory": 5.72265
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)[120,135]",
+    "Mean_Profit": 318838.975,
+    "Service_Level": 97.81849999999999,
+    "Avg_Inventory": 27.32765
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "ZeroShot",
+    "Policy": "DQN",
+    "Mean_Profit": 192220.495,
+    "Service_Level": 74.15169999999999,
+    "Avg_Inventory": 2.39409
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "ZeroShot",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 241768.55,
+    "Service_Level": 87.02960000000002,
+    "Avg_Inventory": 18.18745
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "ZeroShot",
+    "Policy": "EOQ",
+    "Mean_Profit": 216052.5125,
+    "Service_Level": 80.9037,
+    "Avg_Inventory": 7.76
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "ZeroShot",
+    "Policy": "(s,S)[120,135]",
+    "Mean_Profit": 296786.45,
+    "Service_Level": 98.03829999999999,
+    "Avg_Inventory": 32.98905
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "ZeroShot",
+    "Policy": "DQN",
+    "Mean_Profit": 200880.835,
+    "Service_Level": 78.056,
+    "Avg_Inventory": 5.9409
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "Specialised",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 174744.1625,
+    "Service_Level": 83.26389999999999,
+    "Avg_Inventory": 26.62155
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "Specialised",
+    "Policy": "EOQ",
+    "Mean_Profit": 212847.5625,
+    "Service_Level": 90.60619999999999,
+    "Avg_Inventory": 14.47565
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "Specialised",
+    "Policy": "(s,S)[100,105]",
+    "Mean_Profit": 241312.0,
+    "Service_Level": 98.21015,
+    "Avg_Inventory": 24.2867
+  },
+  {
+    "Scenario": "Weekly_Seasonal",
+    "Training": "Specialised",
+    "Policy": "DQN",
+    "Mean_Profit": 240339.62,
+    "Service_Level": 96.87146000000001,
+    "Avg_Inventory": 17.37403
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "Specialised",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 255848.1375,
+    "Service_Level": 86.38349999999998,
+    "Avg_Inventory": 15.565999999999999
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "Specialised",
+    "Policy": "EOQ",
+    "Mean_Profit": 216798.625,
+    "Service_Level": 78.4302,
+    "Avg_Inventory": 5.72265
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "Specialised",
+    "Policy": "(s,S)[120,135]",
+    "Mean_Profit": 318838.975,
+    "Service_Level": 97.81849999999999,
+    "Avg_Inventory": 27.32765
+  },
+  {
+    "Scenario": "Upward_Trend",
+    "Training": "Specialised",
+    "Policy": "DQN",
+    "Mean_Profit": 299366.4825,
+    "Service_Level": 93.50055,
+    "Avg_Inventory": 14.454859999999998
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "Specialised",
+    "Policy": "FixedReorder",
+    "Mean_Profit": 241768.55,
+    "Service_Level": 87.02960000000002,
+    "Avg_Inventory": 18.18745
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "Specialised",
+    "Policy": "EOQ",
+    "Mean_Profit": 216052.5125,
+    "Service_Level": 80.9037,
+    "Avg_Inventory": 7.76
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "Specialised",
+    "Policy": "(s,S)[120,135]",
+    "Mean_Profit": 296786.45,
+    "Service_Level": 98.03829999999999,
+    "Avg_Inventory": 32.98905
+  },
+  {
+    "Scenario": "Regime_Shift_Day45",
+    "Training": "Specialised",
+    "Policy": "DQN",
+    "Mean_Profit": 278576.745,
+    "Service_Level": 93.35519000000001,
+    "Avg_Inventory": 14.7262
+  }
+]
